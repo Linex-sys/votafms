@@ -132,6 +132,10 @@ label.f{display:block;font-size:12px;color:var(--mu);margin:0 0 6px 2px;font-wei
 .err{color:#FF6B7A}
 .btn:disabled{opacity:.6}
 .or{display:flex;align-items:center;gap:10px;color:var(--mu);font-size:12px;margin:6px 0 12px}
+.avbtn{border:0;background:none;padding:0;cursor:pointer;border-radius:50%;display:inline-flex}
+img.av{width:38px;height:38px;border-radius:50%;object-fit:cover;display:block;padding:0;border:0}
+img.av.lg{width:76px;height:76px;border:3px solid rgba(255,255,255,.25)}
+.fotobtn{display:flex;justify-content:center;align-items:center;cursor:pointer;margin-bottom:14px}
 .or:before,.or:after{content:"";flex:1;height:1px;background:var(--bd)}
 </style></head>
 <body>
@@ -169,7 +173,7 @@ const colr=l=>l.i==='in'?'#FACC15':l.c;
 const sz=rd=>rd.p.reduce((s,p)=>s+p.c+3,0);
 const fmt=v=>v==null?'':String(v).replace('.',',');
 const fmtKey=v=>String(v).replace('.',',');
-const pub=d=>({u:d.u||'',p:d.p||'',m:d.m||'',a:d.a||'',joined:d.joined||''});
+const pub=d=>({u:d.u||'',p:d.p||'',m:d.m||'',a:d.a||'',joined:d.joined||'',foto:d.foto||''});
 const today=()=>new Date().toLocaleDateString('es');
 
 async function initFB(){
@@ -212,6 +216,7 @@ const IC={home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-
 function ico(n,s=20){return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`}
 function logo(l,w){if(LOGO[l.i])return `<span style="display:inline-flex;flex:0 0 auto;background:#fff;border-radius:14px;padding:5px;box-shadow:0 6px 14px rgba(0,0,0,.28)"><img src="${LOGO[l.i]}" width="${w}" height="${Math.round(w*1.15)}" alt="${esc(l.n)}" style="display:block;object-fit:contain"></span>`;return `<div style="width:${w}px;height:${Math.round(w*1.15)}px;border-radius:12px;background:${l.c};display:flex;align-items:center;justify-content:center;color:${l.tx};font-weight:900">${l.t}</div>`}
 const av=(name,cls='')=>`<span class="av ${cls}">${esc(String(name||'?')[0].toUpperCase())}</span>`;
+function avU(u,cls=''){return u&&u.foto?`<img class="av ${cls}" src="${u.foto}" alt="">`:`<span class="av ${cls}">${esc(String((u&&u.u)||'?')[0].toUpperCase())}</span>`}
 const nk=()=>({home:'home',lg:'home',vote:'home',res:'home',cal:'cal',search:'search',user:'search',vd:S.vb==='perfil'?'perfil':'search',perfil:'perfil'})[S.v]||'home';
 const accentOf=l=>l.i==='in'?['#CA8A04','#FACC15']:[l.c,l.c2];
 const jLabel=e=>{const m=e.n.match(/Jornada \d+/);return m?m[0]:e.n};
@@ -232,7 +237,7 @@ function R(){
  document.getElementById('app').innerHTML=(VIEW[S.v]||homeV)();
  document.getElementById('ov').innerHTML=(S.auth?authM():'')+(S.sheet?sheetH():'')+(S.fb?fbM():'');
 }
-function topH(){return `<div class="brand"><span style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:14px">V</span><b>VotaFMS</b></div><div class="sp"></div><button class="ib" onclick="openFb()" aria-label="Enviar comentarios">${ico('chat',18)}</button>${S.me?`<button class="av" onclick="go('perfil')" aria-label="Mi perfil">${esc(S.me.u[0].toUpperCase())}</button>`:`<button class="btn sm" onclick="openAuth('in')">Entrar</button>`}`}
+function topH(){return `<div class="brand"><span style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:14px">V</span><b>VotaFMS</b></div><div class="sp"></div><button class="ib" onclick="openFb()" aria-label="Enviar comentarios">${ico('chat',18)}</button>${S.me?`<button class="avbtn" onclick="go('perfil')" aria-label="Mi perfil">${avU(S.me,'')}</button>`:`<button class="btn sm" onclick="openAuth('in')">Entrar</button>`}`}
 function navH(){const items=[['home','Ligas','home'],['cal','Calendario','cal'],['search','Buscar','search'],['perfil','Perfil','user']];return items.map(([k,t,ic])=>`<button class="${nk()===k?'on':''}" onclick="go('${k}')"><span class="ni">${ico(ic,20)}</span>${t}</button>`).join('')}
 
 function homeV(){
@@ -365,9 +370,9 @@ function calV(){return `<h1 class="pg">Calendario</h1><div class="tl">${CAL.map(
 function searchV(){return `<h1 class="pg">Buscar usuarios</h1><input placeholder="Buscar por nombre de usuario" value="${esc(S.q)}" oninput="S.q=this.value;document.getElementById('ul').innerHTML=ulist()"><div id="ul">${S.users===null?'<div class="card mu">Cargando usuarios…</div>':ulist()}</div>`}
 function ulist(){const list=S.users||[],q=(S.q||'').trim().toLowerCase(),f=list.filter(x=>!q||x.u.toLowerCase().includes(q));
  if(!f.length)return `<div class="card mu">${list.length?'No encontramos ese usuario.':'Todavía no hay usuarios registrados. ¡Sé el primero!'}</div>`;
- return f.map(x=>`<button class="vrow" onclick="openU('${esc(x.uid)}')">${av(x.u)}<div style="flex:1;min-width:0"><b>${esc(x.u)}</b><div class="mu" style="font-size:12px">Se unió: ${esc(x.joined||'—')}</div></div>${ico('back',18).replace('<svg','<svg style="transform:rotate(180deg);color:var(--mu)"')}</button>`).join('')}
+ return f.map(x=>`<button class="vrow" onclick="openU('${esc(x.uid)}')">${avU(x,'')}<div style="flex:1;min-width:0"><b>${esc(x.u)}</b><div class="mu" style="font-size:12px">Se unió: ${esc(x.joined||'—')}</div></div>${ico('back',18).replace('<svg','<svg style="transform:rotate(180deg);color:var(--mu)"')}</button>`).join('')}
 function openU(uid){S.uid=uid;go('user')}
-function profileHead(u,isMe){return `<div class="banner" style="--c:#FF4D5E;--c2:#FF9A3D"><span class="av lg">${esc((u.u||'?')[0].toUpperCase())}</span><div style="flex:1;min-width:0"><span class="kicker">${isMe?'Tu perfil':'Usuario'}</span><h1>${esc(u.u)}</h1><p>${esc(u.p||'Sin país')} · ${u.m?'MC favorito: '+esc(u.m):'Sin MC favorito'}</p></div></div>${u.a?`<div class="card"><div class="mu" style="margin-bottom:4px">Sobre mí</div>${esc(u.a)}</div>`:''}<div class="mu" style="margin:-4px 2px 14px">Se unió: ${esc(u.joined||'—')}</div>`}
+function profileHead(u,isMe){return `<div class="banner" style="--c:#FF4D5E;--c2:#FF9A3D">${avU(u,'lg')}<div style="flex:1;min-width:0"><span class="kicker">${isMe?'Tu perfil':'Usuario'}</span><h1>${esc(u.u)}</h1><p>${esc(u.p||'Sin país')} · ${u.m?'MC favorito: '+esc(u.m):'Sin MC favorito'}</p></div></div>${u.a?`<div class="card"><div class="mu" style="margin-bottom:4px">Sobre mí</div>${esc(u.a)}</div>`:''}<div class="mu" style="margin:-4px 2px 14px">Se unió: ${esc(u.joined||'—')}</div>`}
 function statsCard(votes){const n=votes.length,by=L.map(l=>({l,c:votes.filter(v=>v.l===l.i).length})).filter(o=>o.c),C=2*Math.PI*44;let off=0;
  const ring=by.map(o=>{const len=o.c/n*C,s=`<circle r="44" cx="60" cy="60" fill="none" stroke="${colr(o.l)}" stroke-width="14" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 60 60)"/>`;off+=len;return s}).join('');
  return `<div class="card"><div class="stats" style="margin-bottom:14px"><div class="stat"><big>${n}</big><span>Batallas votadas</span></div><div class="stat"><big>${by.length}</big><span>Ligas votadas</span></div></div>${n?`<div class="row"><svg width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="Votos por liga"><circle r="44" cx="60" cy="60" fill="none" stroke="var(--bd)" stroke-width="14"/>${ring}<text x="60" y="67" text-anchor="middle" font-size="22" font-weight="900" fill="var(--tx)">${n}</text></svg><div style="flex:1;min-width:0">${by.map(o=>`<div style="font-size:13px;margin:5px 0"><span style="color:${colr(o.l)};font-size:16px">●</span> ${esc(o.l.n)} <span class="mu">· ${o.c}</span></div>`).join('')}</div></div>`:'<div class="mu">Sin votos todavía.</div>'}</div>`}
@@ -382,7 +387,7 @@ function vdV(){const v=S.viewList[S.vi];if(!v)return searchV();const a=v.ta,b=v.
 function perfilV(){
  if(!S.me)return `<div class="hero"><span class="kicker">Tu cuenta</span><h1>Guarda tus votos</h1><p>Crea una cuenta para votar, ver tus estadísticas y aparecer en la comunidad.</p></div><div style="height:14px"></div><button class="btn" onclick="openAuth('create')">Crear cuenta</button><button class="btn s" onclick="openAuth('in')">Ya tengo cuenta</button>`;
  const m=S.me;const correo=FB&&FB.auth.currentUser?FB.auth.currentUser.email||'':'';
- return `${S.msgP?`<div class="ok">${esc(S.msgP)}</div>`:''}${profileHead(m,true)}
+ return `${S.msgP?`<div class="ok">${esc(S.msgP)}</div>`:''}${profileHead(m,true)}<label class="btn s fotobtn">📷 Editar foto de perfil<input type="file" accept="image/*" style="display:none" onchange="cambiarFoto(this.files[0])"></label>
  ${correo?`<div class="mu" style="margin:-8px 2px 14px">Correo: ${esc(correo)}</div>`:''}
  <div class="card"><b>Editar info</b><div class="mu" style="margin:4px 0 12px">Solo tú puedes cambiar esta información.</div>
  <label class="f">País</label><input id="pf-p" value="${esc(m.p||'')}">
@@ -462,6 +467,17 @@ function openFb(){S.fb=true;S.fbs=false;S.fbe='';R()}
 function closeFb(){S.fb=false;S.fbs=false;S.fbe='';R()}
 async function sendFb(){const t=(S.fbt||'').trim();if(!t){S.fbe='Escribe un comentario antes de enviarlo.';return R()}
  try{await B.addComment({t,d:today(),u:S.me?S.me.u:'anónimo',ts:Date.now()});S.fbt='';S.fbe='';S.fbs=true}catch(e){S.fbe='No se pudo enviar. Intenta de nuevo.'}R()}
+
+async function cambiarFoto(file){if(!file||!S.me)return;
+ S.msgP='Guardando foto…';R();
+ try{const url=await imagenCuadrada(file,256);await B.updateUser(S.me.uid,{foto:url});S.me={...S.me,foto:url};S.msgP='Foto de perfil actualizada'}
+ catch(e){S.msgP='No se pudo cambiar la foto. Prueba con otra imagen.'}
+ R();}
+function imagenCuadrada(file,size){return new Promise((res,rej)=>{const img=new Image();const u=URL.createObjectURL(file);
+ img.onload=()=>{const c=document.createElement('canvas');c.width=c.height=size;const x=c.getContext('2d');const m=Math.min(img.width,img.height);
+  x.drawImage(img,(img.width-m)/2,(img.height-m)/2,m,m,0,0,size,size);URL.revokeObjectURL(u);
+  let q=0.85,d=c.toDataURL('image/jpeg',q);while(d.length>350000&&q>0.4){q-=0.1;d=c.toDataURL('image/jpeg',q)}res(d)};
+ img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('imagen'))};img.src=u})}
 
 const VIEW={home:homeV,lg:lgv,vote:voteV,res:resV,cal:calV,search:searchV,user:userV,vd:vdV,perfil:perfilV};
 async function init(){const ok=await initFB();
