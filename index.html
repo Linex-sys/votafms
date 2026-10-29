@@ -234,6 +234,7 @@ const RF={
  ws:[{n:'Easy',p:[{c:6}]},{n:'Hard',p:[{c:6,rv:1}]},{n:'Random',p:[{c:9}]},{n:'Deluxe',p:[{c:12}]}]};
 const LINEUP={"es": ["Ibán", "Gazir", "Arkano", "Sweet Pain", "Babi", "Bélico", "Navas", "Sara Socas", "Marithea", "El Menor"], "ar": ["Mecha", "Larrix", "Replik", "Exe", "Sophia", "Facu HDR", "Dybbuk", "Abel", "Rife", "Tobi"], "mx": ["Jony Beltrán", "Azuky", "Lobo Estepario", "Rapder", "Nota Roja", "Xhavez", "Chuty", "Kodigo", "Dalia Castella", "Skone"], "cl": ["Kaiser", "Nitro", "Teorema", "Stuart", "Fusok", "Drose", "Destello", "BTI", "Animus", "Metalingüística"], "co": ["Aczino", "Valles-T", "Éxodo Lirical", "Fat N", "Filósofo", "Pandora", "Reverse", "Dima", "Puppy", "Visionario"]};
 const HIDDEN_LIGAS=['ca','ws'];
+RF.libre=[{n:'Easy · Hard',p:[{t:'Easy Mode',c:6},{t:'Hard Mode',c:6,rv:1}]},{n:'Temáticas',p:[{t:'Primera Temática',c:4},{t:'Segunda Temática',c:4}]},{n:'Random',p:[{c:9}]},{n:'Minutos a sangre',p:[{t:'Minuto 1',c:6},{t:'Minuto 2',c:6}]},{n:'Acapela',p:[{t:'Acapela',c:1,max:4}]},{n:'Deluxe',p:[{c:12}]}];
 const REP={n:'Réplica',rep:1,p:[{c:6}]};
 let S={v:'home',lg:null,bt:null,ri:0,sc:[],rounds:[],rep:null,yt:'',na:'',nb:'',err:'',q:'',uid:null,vi:0,vb:'perfil',viewList:[],sheet:null,auth:null,fb:false,fbs:false,fbt:'',fbe:'',kpe:'',pend:null,last:null,msgP:'',users:null,myVotes:null,uProf:null,uVotes:null,comm:null,me:null,authBusy:false};
 let FB=null;
@@ -375,7 +376,7 @@ function renderFloat(){
 const ACT=[{k:'RANDOM',max:10},{k:'IDA',max:10},{k:'VUELTA',max:10},{k:'ACAPELLA',max:4},{k:'DELUXE',max:10}];
 const ACTR={n:'Planilla actual',act:1,p:[]};
 const REPA={n:'Réplica',rep:1,act:1,p:[]};
-function fmtRounds(f,l){return f==='actual'?[ACTR]:RF[l.f].slice()}
+function fmtRounds(f,l){if(f==='actual')return [ACTR];if(S.libre)return RF.libre.slice();return RF[l.f].slice()}
 function szOf(rd){return rd.act?(rd.rep?1:ACT.length):sz(rd)}
 function bodyV(){if(S.fmt==='actual')return actualV();return S.ri>=S.rounds.length?summaryV():roundV()}
 function fmtSeg(){return `<div class="seg" style="margin-bottom:12px"><button class="${S.fmt!=='actual'?'on':''}" onclick="setFmt('antigua')">Planilla antigua</button><button class="${S.fmt==='actual'?'on':''}" onclick="setFmt('actual')">Planilla actual</button></div>`}
@@ -554,7 +555,8 @@ function stepsList(){const out=[];S.rounds.forEach((rd,ri)=>rd.p.forEach((part,p
 function curStep(){return stepsList().findIndex(x=>x.ri===S.ri&&x.pi===S.pi)}
 function goStep(i){const st=stepsList();if(i>=st.length){S.ri=S.rounds.length;S.pi=0}else{i=Math.max(0,i);S.ri=st[i].ri;S.pi=st[i].pi}R();window.scrollTo(0,0)}
 function mv(d){goStep(curStep()+d)}
-function pick(m,idx){const cur=S.sc[S.ri][m][idx];S.sheet={m,idx,str:cur==null?'':fmtKey(cur)};S.kpe='';R()}
+function maxAt(idx){let off=0;for(const part of S.rounds[S.ri].p){const vals=part.c+3;if(idx<off+vals)return part.max||10;off+=vals}return 10}
+function pick(m,idx){const cur=S.sc[S.ri][m][idx];S.sheet={m,idx,max:maxAt(idx),str:cur==null?'':fmtKey(cur)};S.kpe='';R()}
 function setV(v){const h=S.sheet;S.sc[h.ri!=null?h.ri:S.ri][h.m][h.idx]=v;S.sheet=null;S.kpe='';R()}
 function closeSheet(){S.sheet=null;S.kpe='';R()}
 function kpAdd(d){const h=S.sheet;let c=h.str||'';
@@ -573,10 +575,10 @@ function kpOk(){const str=(S.sheet.str||'').trim();if(str===''){return setV(null
 function sheetH(){const h=S.sheet;
  let vals=[];
  if(h.ri!=null){const max=h.ri===1?10:ACT[h.idx].max;for(let i=0;i<=max;i++)vals.push(i)}
- else{for(let i=0;i<=20;i++)vals.push(i/2)}
+ else{const mx=h.max||10;for(let i=0;i<=mx*2;i++)vals.push(i/2)}
  const title=h.m?S.bt.b:S.bt.a;
  const lab=h.ri!=null?(h.ri===1?'Réplica':ACT[h.idx].k):'';
- const range=h.ri!=null?`0 a ${h.ri===1?10:ACT[h.idx].max}`:'De 0 a 10, con medio punto';
+ const range=h.ri!=null?`0 a ${h.ri===1?10:ACT[h.idx].max}`:`De 0 a ${h.max||10}, con medio punto`;
  return `<div class="ov" onclick="closeSheet()"><div class="sh" onclick="event.stopPropagation()"><div class="row" style="justify-content:space-between;margin-bottom:14px"><b style="font-size:17px">${esc(title)}${lab?' · '+lab:''}</b><span class="mu">${range}</span></div><div class="pk">${vals.map(v=>`<button onclick="setV(${v})">${fmt(v)}</button>`).join('')}<button class="clr" onclick="setV(null)">Borrar</button></div></div></div>`}
 function buildVote(){const act=S.fmt==='actual';const a=act?mainTot(0):counted(0),b=act?mainTot(1):counted(1);
  const rows=S.rounds.map((r,k)=>({r:r.n,ta:sumR(k,0),tb:sumR(k,1),rep:!!r.rep})).filter(r=>S.rep==='voted'||!r.rep);
@@ -752,7 +754,7 @@ function startEdit(v){
  S.bt={a:v.a,b:v.b,j:v.j||(v.free?'Batalla libre':l.n+' · '+v.date),y:v.y||null,libre:!!v.free};
  S.fmt=v.fmt==='actual'?'actual':'antigua';S.rounds=fmtRounds(S.fmt,l);if(v.rep==='voted')S.rounds.push(S.fmt==='actual'?REPA:REP);
  S.rep=v.rep==='voted'?'voted':(v.rep==='skipped'?'skipped':null);
- S.sc=v.sc.map(p=>[p.a,p.b]);
+ S.sc=v.sc.map(p=>[p.a,p.b]);if(S.sc.length!==S.rounds.length||S.rounds.some((rd,k)=>S.sc[k][0].length!==szOf(rd))){S.msgP='Esta votación es de antes del formato nuevo. Bórrala y vótala otra vez.';S.v='perfil';return R()}
  S.ri=0;S.pi=0;S.editId=v.id;S.v='vote';R();window.scrollTo(0,0);
 }
 function editMine(){const v=S.viewList[S.vi];if(v)startEdit(v)}
