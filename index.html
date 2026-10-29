@@ -157,6 +157,12 @@ button.card{width:100%;text-align:left;color:var(--tx);font:inherit;cursor:point
 .linkbtn{border:0;background:none;color:var(--tx);font-weight:800;display:inline-flex;align-items:center;gap:8px;cursor:pointer;padding:0;font-family:inherit;font-size:15px}
 .nav button{position:relative}
 .nbadge{position:absolute;top:0;left:calc(50% + 12px);background:var(--ac);color:#fff;border-radius:999px;font-size:10px;font-weight:900;padding:1px 6px;min-width:18px;text-align:center}
+.stbl{display:grid;grid-template-columns:40px 1fr 46px 34px 34px 56px;align-items:center;min-width:300px}
+.sth{font-size:10px;color:var(--mu);font-weight:800;padding:6px 4px;text-align:center;text-transform:uppercase;letter-spacing:.5px}
+.std{padding:10px 4px;text-align:center;border-top:1px solid var(--bd);font-size:14px}
+.std.n{text-align:left;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.std.b{font-weight:900}
+.std.top{color:var(--ac);font-weight:900}
 .gbadge{width:40px;height:40px;border-radius:12px;background:#fff;color:#4285F4;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;flex:0 0 auto;box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:7;display:flex;justify-content:space-around;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(10,15,30,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--bd)}
 .nav button{flex:1;max-width:120px;border:0;background:none;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:4px;cursor:pointer}
@@ -198,6 +204,7 @@ const RF={
  es:[{n:'Easy · Hard',p:[{t:'Easy Mode',c:6},{t:'Hard Mode',c:6,rv:1}]},{n:'Temáticas',p:[{t:'Primera Temática',c:4},{t:'Segunda Temática',c:4}]},{n:'Random',p:[{c:9}]},{n:'Minutos a sangre',p:[{t:'Minuto 1',c:6},{t:'Minuto 2',c:6}]},{n:'Deluxe',p:[{c:12}]}],
  std:[{n:'Easy',p:[{c:6}]},{n:'Hard',p:[{c:6,rv:1}]},{n:'Random',p:[{c:9}]},{n:'Minutos a sangre',p:[{t:'Minuto 1',c:6},{t:'Minuto 2',c:6}]},{n:'Deluxe',p:[{c:12}]}],
  ws:[{n:'Easy',p:[{c:6}]},{n:'Hard',p:[{c:6,rv:1}]},{n:'Random',p:[{c:9}]},{n:'Deluxe',p:[{c:12}]}]};
+const LINEUP={"es": ["Ibán", "Gazir", "Arkano", "Sweet Pain", "Babi", "Bélico", "Navas", "Sara Socas", "Marithea", "El Menor"], "ar": ["Mecha", "Larrix", "Replik", "Exe", "Sophia", "Facu HDR", "Dybbuk", "Abel", "Rife", "Tobi"], "mx": ["Jony Beltrán", "Azuky", "Lobo Estepario", "Rapder", "Nota Roja", "Xhavez", "Chuty", "Kodigo", "Dalia Castella", "Skone"], "cl": ["Kaiser", "Nitro", "Teorema", "Stuart", "Fusok", "Drose", "Destello", "BTI", "Animus", "Metalingüística"], "co": ["Aczino", "Valles-T", "Éxodo Lirical", "Fat N", "Filósofo", "Pandora", "Reverse", "Dima", "Puppy", "Visionario"]};
 const REP={n:'Réplica',rep:1,p:[{c:6}]};
 let S={v:'home',lg:null,bt:null,ri:0,sc:[],rounds:[],rep:null,yt:'',na:'',nb:'',err:'',q:'',uid:null,vi:0,vb:'perfil',viewList:[],sheet:null,auth:null,fb:false,fbs:false,fbt:'',fbe:'',kpe:'',pend:null,last:null,msgP:'',users:null,myVotes:null,uProf:null,uVotes:null,comm:null,me:null,authBusy:false};
 let FB=null;
@@ -247,6 +254,7 @@ const B={
  async addVote(v){const fm=FB.fm;await fm.addDoc(fm.collection(FB.db,'votes'),v)},
  async updateVote(id,v){const fm=FB.fm;await fm.updateDoc(fm.doc(FB.db,'votes',id),v)},
  async deleteVote(id){const fm=FB.fm;await fm.deleteDoc(fm.doc(FB.db,'votes',id))},
+  async votesOfLeague(l){const fm=FB.fm;const s=await fm.getDocs(fm.query(fm.collection(FB.db,'votes'),fm.where('l','==',l),fm.limit(2000)));return s.docs.map(d=>d.data())},
  async deleteUserDoc(uid,u){const fm=FB.fm;await fm.deleteDoc(fm.doc(FB.db,'users',uid));await fm.deleteDoc(fm.doc(FB.db,'usernames',u))},
  async listFriendDocs(uid){const fm=FB.fm;const [a,b]=await Promise.all([fm.getDocs(fm.query(fm.collection(FB.db,'friends'),fm.where('from','==',uid))),fm.getDocs(fm.query(fm.collection(FB.db,'friends'),fm.where('to','==',uid)))]);const out=[];a.docs.concat(b.docs).forEach(d=>{if(!out.find(x=>x.id===d.id))out.push({id:d.id,...d.data()})});return out},
  async sendFriend(me,meName,to,toName){const fm=FB.fm;await fm.setDoc(fm.doc(FB.db,'friends',me+'_'+to),{from:me,to,status:'pending',fromName:meName,toName,ts:Date.now()})},
@@ -269,10 +277,11 @@ const jLabel=e=>{const m=e.n.match(/Jornada \d+/);return m?m[0]:e.n};
 function batOf(e,b){if(typeof b==='string'){const p=b.split(/ vs /i);return {a:(p[0]||'').trim(),b:(p[1]||'').trim(),sa:null,sb:null,j:e.n+' · '+e.d}}return {a:b.a,b:b.b,sa:b.sa,sb:b.sb,y:b.y||null,j:e.n+' · '+e.d}}
 function crow(x){const sc=x.sa!=null,left=sc&&x.sa>x.sb,right=sc&&x.sb>x.sa;return `<div class="crow"><span class="cn ${left?'cw':sc?'cl':''}">${esc(x.a)}</span><span class="cs">${sc?fmt(x.sa)+' – '+fmt(x.sb):'VS'}</span><span class="cn r ${right?'cw':sc?'cl':''}">${esc(x.b)}</span></div>`}
 
-function go(v){S.v=v;window.scrollTo(0,0);if(v==='perfil')S.myVotes=S.me?null:[];if(v==='search')S.users=null;if(v==='user'){S.uProf=null;S.uVotes=null}R();loadFor(v)}
+function go(v){S.v=v;if(v==='lg')S.lgVotes=null;window.scrollTo(0,0);if(v==='perfil')S.myVotes=S.me?null:[];if(v==='search')S.users=null;if(v==='user'){S.uProf=null;S.uVotes=null}R();loadFor(v)}
 async function loadFor(v){
  try{
   if(v==='perfil'&&S.me){S.myVotes=await B.votesOfUser(S.me.uid);await refreshFriends();R()}
+  else if(v==='lg'&&LINEUP[S.lg]){S.lgVotes=await B.votesOfLeague(S.lg);R()}
   else if(v==='search'){S.users=await B.listUsers();await refreshFriends();R()}
   else if(v==='user'){await refreshFriends();const p=await B.getUser(S.uid);S.uProf=p?pub(p):{u:'?',p:'',m:'',a:'',joined:''};const canSee=(S.me&&S.me.uid===S.uid)||isFriend(S.uid);S.uVotes=canSee?await B.votesOfUser(S.uid):[];R()}
  }catch(e){if(v==='perfil')S.myVotes=[];if(v==='search')S.users=[];if(v==='user'){S.uVotes=[];S.uProf=S.uProf||{u:'?',p:'',m:'',a:'',joined:''}}R()}
@@ -334,6 +343,40 @@ function homeV(){
  ${S.me?'':`<button class="btn" onclick="openAuth('create')">Crear cuenta para guardar tus votos</button>`}`;
 }
 function openLg(i){S.lg=i;S.err='';go('lg')}
+const nrm=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,'');
+function standings(lg,votes){
+ const names=LINEUP[lg]||[];const idx={};names.forEach(n=>idx[nrm(n)]=n);
+ const T={};names.forEach(n=>T[n]={n,pts:0,w:0,l:0,ptb:0});
+ const groups={};
+ (votes||[]).forEach(v=>{
+  if(v.free)return;
+  const A=idx[nrm(v.a)],B2=idx[nrm(v.b)];
+  if(!A||!B2||A===B2)return;
+  const sorted=[A,B2].sort();const k=sorted.join('|');
+  const g=groups[k]||(groups[k]={p:sorted[0],q:sorted[1],sp:0,sq:0,n:0});
+  const pv=(A===g.p)?v.ta:v.tb, qv=(A===g.p)?v.tb:v.ta;
+  g.sp+=pv;g.sq+=qv;g.n++;
+ });
+ Object.values(groups).forEach(g=>{
+  const ap=g.sp/g.n,aq=g.sq/g.n,d=Math.abs(ap-aq);
+  T[g.p].ptb+=ap;T[g.q].ptb+=aq;
+  if(ap===aq){T[g.p].pts+=1;T[g.q].pts+=1;return}
+  const win=ap>aq?g.p:g.q, lose=ap>aq?g.q:g.p;
+  T[win].w++;T[lose].l++;
+  if(d>=1){T[win].pts+=3}              // directa: 3 puntos al ganador, 0 al perdedor
+  else{T[win].pts+=2;T[lose].pts+=1}   // réplica: 2 al ganador, 1 al perdedor
+ });
+ return Object.values(T).sort((x,y)=>y.pts-x.pts||y.w-x.w||y.ptb-x.ptb||x.n.localeCompare(y.n));
+}
+function standingsCard(l){
+ if(!LINEUP[l.i])return '';
+ if(!S.lgVotes)return `<div class="sec"><span>Tabla de posiciones</span></div><div class="card mu">Cargando tabla…</div>`;
+ const rows=standings(l.i,S.lgVotes);
+ return `<div class="sec"><span>Tabla de posiciones</span><span>${rows.length} participantes</span></div>
+ <div class="card" style="padding:8px 6px;overflow-x:auto"><div class="stbl">
+ <div class="sth">Pos</div><div class="sth" style="text-align:left">Participante</div><div class="sth">Pts</div><div class="sth">G</div><div class="sth">P</div><div class="sth">PTB</div>
+ ${rows.map((r,i)=>`<div class="std${i<3?' top':''}">${i+1}</div><div class="std n">${esc(r.n)}</div><div class="std b">${r.pts}</div><div class="std">${r.w}</div><div class="std">${r.l}</div><div class="std">${fmt(Math.round(r.ptb*10)/10)}</div>`).join('')}
+ </div></div>`}
 function lgv(){
  const l=curL(),ents=CAL.map((e,ci)=>({e,ci})).filter(x=>x.e.i===l.i);
  const [ac1,ac2]=accentOf(l);
@@ -349,7 +392,7 @@ function lgv(){
  <label class="f">Link de YouTube</label><input placeholder="https://youtube.com/watch?v=..." value="${esc(S.yt)}" oninput="S.yt=this.value">
  <div class="row" style="gap:8px;align-items:flex-start"><div style="flex:1;min-width:0"><label class="f">MC 1</label><input placeholder="MC 1" value="${esc(S.na)}" oninput="S.na=this.value"></div><div style="flex:1;min-width:0"><label class="f">MC 2</label><input placeholder="MC 2" value="${esc(S.nb)}" oninput="S.nb=this.value"></div></div>
  ${S.err?`<div class="err">${esc(S.err)}</div>`:''}<button class="btn" onclick="ytGo()">Votar esta batalla</button></div>
- ${ents.length?groups:'<div class="card mu" style="text-align:center">Aún no hay batallas cargadas para esta liga.</div>'}
+ ${standingsCard(l)}${ents.length?groups:'<div class="card mu" style="text-align:center">Aún no hay batallas cargadas para esta liga.</div>'}
  </div>`;
 }
 function startBat(ci,bi){const e=CAL[ci];const b=batOf(e,e.b[bi]);start({a:b.a,b:b.b,j:b.j,y:b.y||null})}
