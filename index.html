@@ -163,6 +163,14 @@ button.card{width:100%;text-align:left;color:var(--tx);font:inherit;cursor:point
 .std.n{text-align:left;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .std.b{font-weight:900}
 .std.top{color:var(--ac);font-weight:900}
+.stepbar{display:flex;gap:4px;overflow-x:auto;padding:2px 2px 14px}
+.sbtn{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:5px;border:0;background:none;color:var(--mu);font-size:10px;font-weight:800;cursor:pointer;min-width:62px;font-family:inherit}
+.sdot{width:32px;height:32px;border-radius:50%;background:var(--cd2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;border:1px solid var(--bd);color:var(--tx)}
+.sbtn.done .sdot{border-color:var(--ac)}
+.sbtn.on{color:var(--tx)}
+.sbtn.on .sdot{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border-color:transparent;box-shadow:0 6px 14px color-mix(in srgb,var(--ac) 45%,transparent)}
+.slab{text-align:center;line-height:1.1;max-width:70px}
+.tbtn{border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.22);color:#fff;border-radius:999px;padding:6px 11px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap}
 .gbadge{width:40px;height:40px;border-radius:12px;background:#fff;color:#4285F4;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;flex:0 0 auto;box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:7;display:flex;justify-content:space-around;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(10,15,30,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--bd)}
 .nav button{flex:1;max-width:120px;border:0;background:none;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:4px;cursor:pointer}
@@ -208,7 +216,7 @@ const LINEUP={"es": ["Ibán", "Gazir", "Arkano", "Sweet Pain", "Babi", "Bélico"
 const REP={n:'Réplica',rep:1,p:[{c:6}]};
 let S={v:'home',lg:null,bt:null,ri:0,sc:[],rounds:[],rep:null,yt:'',na:'',nb:'',err:'',q:'',uid:null,vi:0,vb:'perfil',viewList:[],sheet:null,auth:null,fb:false,fbs:false,fbt:'',fbe:'',kpe:'',pend:null,last:null,msgP:'',users:null,myVotes:null,uProf:null,uVotes:null,comm:null,me:null,authBusy:false};
 let FB=null;
-S.lb={yt:'',a:'',b:'',lg:null,err:''};S.libre=false;
+S.lb={yt:'',a:'',b:'',lg:null,err:''};S.libre=false;S.pi=0;S.hideTot=false;
 
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sum=a=>a.reduce((x,y)=>x+(y||0),0);
@@ -397,7 +405,7 @@ function lgv(){
 }
 function startBat(ci,bi){const e=CAL[ci];const b=batOf(e,e.b[bi]);start({a:b.a,b:b.b,j:b.j,y:b.y||null})}
 function ytGo(){const m=(S.yt||'').match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/);if(!m){S.err='Ese link no parece de YouTube. Prueba con otro.';return R()}S.err='';start({a:S.na.trim()||'MC 1',b:S.nb.trim()||'MC 2',j:'Batalla por link',y:m[1]})}
-function start(b){const l=curL();S.bt=b;S.libre=!!b.libre;S.editId=null;const exK=(S.libre?'libre':S.lg)+'|'+b.a+'|'+b.b;const exV=(S.myVotes||[]).find(x=>x.key===exK&&x.sc);if(exV)return startEdit(exV);S.ri=0;S.rep=null;S.rounds=RF[l.f].slice();S.sc=S.rounds.map(rd=>[Array(sz(rd)).fill(null),Array(sz(rd)).fill(null)]);S.v='vote';R();window.scrollTo(0,0)}
+function start(b){const l=curL();S.bt=b;S.libre=!!b.libre;S.editId=null;const exK=(S.libre?'libre':S.lg)+'|'+b.a+'|'+b.b;const exV=(S.myVotes||[]).find(x=>x.key===exK&&x.sc);if(exV)return startEdit(exV);S.ri=0;S.pi=0;S.rep=null;S.rounds=RF[l.f].slice();S.sc=S.rounds.map(rd=>[Array(sz(rd)).fill(null),Array(sz(rd)).fill(null)]);S.v='vote';R();window.scrollTo(0,0)}
 function sumR(k,m){return sum(S.sc[k][m])}
 function tot(m){return S.rounds.reduce((a,_,k)=>a+sumR(k,m),0)}
 function mainTot(m){return S.rounds.reduce((a,rd,k)=>a+(rd.rep?0:sumR(k,m)),0)}
@@ -411,21 +419,23 @@ function voteV(){
  ${media}<div id="plan">${done?summaryV():roundV()}</div></div>`;
 }
 function roundV(){
- const rd=S.rounds[S.ri],n=S.rounds.length;
- const steps=`<div class="steps">${S.rounds.map((r,k)=>`<button class="stp ${k===S.ri?'on':k<S.ri?'done':''}" onclick="goR(${k})">${esc(r.n)}</button>`).join('')}</div>`;
- let off=0;
- const gBase=S.rounds.slice(0,S.ri).reduce((a,r)=>a+r.p.length,0);
- const blocks=rd.p.map((part,pi)=>{const vals=part.c+3,grid=`grid-template-columns:96px repeat(${vals},minmax(34px,1fr)) 46px`;
-  const head=`<div class="pgrid" style="${grid}"><span></span>${Array.from({length:part.c},(_,j)=>`<span class="ph">${j+1}</span>`).join('')}<span class="ph">Téc.</span><span class="ph">Flow</span><span class="ph">P.Esc</span><span class="ph">Tot.</span></div>`;
-  const order=((gBase+pi)%2===0)?[0,1]:[1,0];
-  const rows=order.map(m=>{const ps=sum(S.sc[S.ri][m].slice(off,off+vals));
-   return `<div class="pgrid" style="${grid};margin-top:6px"><span class="pname" style="color:${m?'var(--ac2)':'var(--ac)'}">${esc(m?S.bt.b:S.bt.a)}</span>${Array.from({length:vals},(_,j)=>{const idx=off+j,v=S.sc[S.ri][m][idx];return `<button class="cell ${j>=part.c?'crit ':''}${v==null?'empty':'set'}${m?' b':''}" onclick="pick(${m},${idx})">${v==null?'–':fmt(v)}</button>`}).join('')}<div class="tot">${fmt(ps)}</div></div>`}).join('');
-  off+=vals;
-  return `<div class="pblock">${part.t?`<div class="pbt">${esc(part.t)}</div>`:''}${head}${rows}</div>`}).join('');
- return `${steps}
- <div class="score"><span style="color:var(--ac);font-weight:800">${esc(S.bt.a)}</span><b>${fmt(sumR(S.ri,0))} – ${fmt(sumR(S.ri,1))}</b><span style="color:var(--b2);font-weight:800">${esc(S.bt.b)}</span></div>
- <div class="card pl-card"><div class="pl-head"><div><div class="pl-kicker">${rd.rep?'Réplica':`Ronda ${S.ri+1} de ${n}`}</div><div class="pl-title">${esc(rd.n)}</div></div><div class="pl-dots">${S.rounds.map((_,k)=>`<i class="${k===S.ri?'on':k<S.ri?'done':''}"></i>`).join('')}</div></div><div class="pl-scroll">${blocks}</div><div class="pl-foot"><span class="pl-lab">TOTAL</span><div class="pl-tot" style="color:var(--ac)">${fmt(tot(0))}<small>${esc(S.bt.a)}</small></div><div class="pl-tot" style="color:var(--ac2)">${fmt(tot(1))}<small>${esc(S.bt.b)}</small></div></div></div>
- <div class="row" style="gap:8px"><button class="btn s" style="margin:0" onclick="mv(-1)" ${S.ri?'':'disabled'}>Anterior</button><button class="btn" style="margin:0" onclick="mv(1)">${S.ri===n-1?'Ver resultado':'Siguiente'}</button></div>`;
+ const st=stepsList(),i=curStep(),cur=st[i]||st[0],rd=S.rounds[S.ri],part=rd.p[S.pi],n=st.length;
+ const vals=part.c+3;let off=0;for(let k=0;k<S.pi;k++)off+=rd.p[k].c+3;
+ const grid=`grid-template-columns:96px repeat(${vals},minmax(34px,1fr)) 46px`;
+ const head=`<div class="pgrid" style="${grid}"><span></span>${Array.from({length:part.c},(_,j)=>`<span class="ph">${j+1}</span>`).join('')}<span class="ph">Téc.</span><span class="ph">Flow</span><span class="ph">P.Esc</span><span class="ph">Tot.</span></div>`;
+ const order=(i%2===0)?[0,1]:[1,0];
+ const rows=order.map(m=>{const ps=sum(S.sc[S.ri][m].slice(off,off+vals));
+  return `<div class="pgrid" style="${grid};margin-top:6px"><span class="pname" style="color:${m?'var(--ac2)':'var(--ac)'}">${esc(m?S.bt.b:S.bt.a)}</span>${Array.from({length:vals},(_,j)=>{const idx=off+j,v=S.sc[S.ri][m][idx];return `<button class="cell ${j>=part.c?'crit ':''}${v==null?'empty':'set'}${m?' b':''}" onclick="pick(${m},${idx})">${v==null?'–':fmt(v)}</button>`}).join('')}<div class="tot">${S.hideTot?'·':fmt(ps)}</div></div>`}).join('');
+ const bar=`<div class="stepbar">${st.map((x,k)=>`<button class="sbtn ${k===i?'on':k<i?'done':''}" onclick="goStep(${k})"><span class="sdot">${k+1}</span><span class="slab">${esc(x.lab)}</span></button>`).join('')}</div>`;
+ const foot=S.hideTot?`<div class="pl-foot"><span class="pl-lab" style="grid-column:1/4">TOTALES OCULTOS</span></div>`:`<div class="pl-foot"><span class="pl-lab">TOTAL</span><div class="pl-tot" style="color:var(--ac)">${fmt(tot(0))}<small>${esc(S.bt.a)}</small></div><div class="pl-tot" style="color:var(--ac2)">${fmt(tot(1))}<small>${esc(S.bt.b)}</small></div></div>`;
+ return `${bar}
+ <div class="pl-card">
+  <div class="pl-head"><div><div class="pl-kicker">Paso ${i+1} de ${n}${cur.rep?' · Réplica':''}</div><div class="pl-title">${esc(cur.lab)}</div></div>
+  <button class="tbtn" onclick="S.hideTot=!S.hideTot;R()">${S.hideTot?'Mostrar totales':'Ocultar totales'}</button></div>
+  <div class="pl-scroll"><div class="pblock">${head}${rows}</div></div>
+  ${foot}
+ </div>
+ <div class="row" style="gap:8px;margin-top:12px"><button class="btn s" style="margin:0" onclick="mv(-1)" ${i?'':'disabled'}>Anterior</button><button class="btn" style="margin:0" onclick="mv(1)">${i===n-1?'Ver resultado':'Siguiente'}</button></div>`;
 }
 function summaryV(){
  const ma=mainTot(0),mb=mainTot(1),md=Math.abs(ma-mb);
@@ -442,10 +452,13 @@ function summaryV(){
 function repPrompt(ma,mb,md){
  return `<div class="card" style="text-align:center"><div class="mu">Diferencia de ${fmt(md)} punto${md===0?'':'s'}</div><div style="font-weight:900;font-size:19px;margin:6px 0 12px">Hay réplica</div><div class="score" style="margin-bottom:12px"><span style="color:var(--ac);font-weight:800">${esc(S.bt.a)} ${fmt(ma)}</span><span class="mu">vs</span><span style="color:var(--b2);font-weight:800">${fmt(mb)} ${esc(S.bt.b)}</span></div><div class="mu">Una diferencia menor a 1 punto necesita réplica. Puedes votarla o dejarla fuera.</div></div><button class="btn" onclick="votarReplica()">Votar réplica</button><button class="btn s" onclick="omitirReplica()">Omitir réplica</button>`;
 }
-function votarReplica(){S.rounds.push(REP);S.sc.push([Array(sz(REP)).fill(null),Array(sz(REP)).fill(null)]);S.rep='voted';S.ri=S.rounds.length-1;R();window.scrollTo(0,0)}
+function votarReplica(){S.rounds.push(REP);S.sc.push([Array(sz(REP)).fill(null),Array(sz(REP)).fill(null)]);S.rep='voted';S.ri=S.rounds.length-1;S.pi=0;R();window.scrollTo(0,0)}
 function omitirReplica(){S.rep='skipped';R();window.scrollTo(0,0)}
-function goR(k){S.ri=k;R();window.scrollTo(0,0)}
-function mv(d){S.ri=Math.max(0,Math.min(S.rounds.length,S.ri+d));R();window.scrollTo(0,0)}
+function goR(k){S.ri=k;S.pi=S.rounds[k].p.length-1;R();window.scrollTo(0,0)}
+function stepsList(){const out=[];S.rounds.forEach((rd,ri)=>rd.p.forEach((part,pi)=>{let lab=part.t||rd.n;lab=lab.replace(' Mode','').replace('Primera Temática','Temática 1').replace('Segunda Temática','Temática 2').replace(/^Minuto (\d)$/,'Minuto libre $1');out.push({ri,pi,lab,rep:!!rd.rep})}));return out}
+function curStep(){return stepsList().findIndex(x=>x.ri===S.ri&&x.pi===S.pi)}
+function goStep(i){const st=stepsList();if(i>=st.length){S.ri=S.rounds.length;S.pi=0}else{i=Math.max(0,i);S.ri=st[i].ri;S.pi=st[i].pi}R();window.scrollTo(0,0)}
+function mv(d){goStep(curStep()+d)}
 function pick(m,idx){const cur=S.sc[S.ri][m][idx];S.sheet={m,idx,str:cur==null?'':fmtKey(cur)};S.kpe='';R()}
 function setV(v){const h=S.sheet;S.sc[S.ri][h.m][h.idx]=v;S.sheet=null;S.kpe='';R()}
 function closeSheet(){S.sheet=null;S.kpe='';R()}
@@ -639,7 +652,7 @@ function startEdit(v){
  S.rounds=RF[l.f].slice();if(v.rep==='voted')S.rounds.push(REP);
  S.rep=v.rep==='voted'?'voted':(v.rep==='skipped'?'skipped':null);
  S.sc=v.sc.map(p=>[p.a,p.b]);
- S.ri=0;S.editId=v.id;S.v='vote';R();window.scrollTo(0,0);
+ S.ri=0;S.pi=0;S.editId=v.id;S.v='vote';R();window.scrollTo(0,0);
 }
 function editMine(){const v=S.viewList[S.vi];if(v)startEdit(v)}
 async function deleteMine(){const v=S.viewList[S.vi];if(!v||!v.id)return;
