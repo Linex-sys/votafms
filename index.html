@@ -180,6 +180,9 @@ button.card{width:100%;text-align:left;color:var(--tx);font:inherit;cursor:point
 .fp-c{overflow-y:auto;padding:10px}
 .fp .stepbar{padding:0 0 10px}
 .fp .pl-card .pl-title{font-size:16px}
+.panel #top,.panel #nav{display:none}
+.panel #app{padding:8px;max-width:100%}
+.panel .video,.panel a.btn,.panel .btn.s[onclick="openFloat()"]{display:none}
 .gbadge{width:40px;height:40px;border-radius:12px;background:#fff;color:#4285F4;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;flex:0 0 auto;box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:7;display:flex;justify-content:space-around;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(10,15,30,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--bd)}
 .nav button{flex:1;max-width:120px;border:0;background:none;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:4px;cursor:pointer}
@@ -718,7 +721,10 @@ async function deleteAccount(){
 }
 
 const VIEW={libre:libreV,home:homeV,lg:lgv,vote:voteV,res:resV,cal:calV,search:searchV,user:userV,vd:vdV,perfil:perfilV};
-async function init(){const ok=await initFB();
+async function init(){
+ const q=new URLSearchParams(location.search);
+ if(q.get('panel')==='1'){document.body.classList.add('panel');S.lg=q.get('l')||'es';start({a:q.get('a')||'MC 1',b:q.get('b')||'MC 2',j:'Planilla',y:q.get('y')||null,libre:q.get('libre')==='1'})}
+ const ok=await initFB();
  if(!ok){document.getElementById('app').innerHTML='<div class="card">No se pudo conectar con la base de datos. Revisa tu conexión y recarga la página.</div>';return}
  watchAuth();R();}
 init();
