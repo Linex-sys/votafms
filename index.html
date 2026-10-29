@@ -155,6 +155,8 @@ button.card{width:100%;text-align:left;color:var(--tx);font:inherit;cursor:point
 .frow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-top:1px dashed var(--bd)}
 .frow:first-of-type{border-top:0}
 .linkbtn{border:0;background:none;color:var(--tx);font-weight:800;display:inline-flex;align-items:center;gap:8px;cursor:pointer;padding:0;font-family:inherit;font-size:15px}
+.nav button{position:relative}
+.nbadge{position:absolute;top:0;left:calc(50% + 12px);background:var(--ac);color:#fff;border-radius:999px;font-size:10px;font-weight:900;padding:1px 6px;min-width:18px;text-align:center}
 .gbadge{width:40px;height:40px;border-radius:12px;background:#fff;color:#4285F4;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;flex:0 0 auto;box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:7;display:flex;justify-content:space-around;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(10,15,30,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--bd)}
 .nav button{flex:1;max-width:120px;border:0;background:none;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:4px;cursor:pointer}
@@ -269,12 +271,15 @@ function crow(x){const sc=x.sa!=null,left=sc&&x.sa>x.sb,right=sc&&x.sb>x.sa;retu
 function go(v){S.v=v;window.scrollTo(0,0);if(v==='perfil')S.myVotes=S.me?null:[];if(v==='search')S.users=null;if(v==='user'){S.uProf=null;S.uVotes=null}R();loadFor(v)}
 async function loadFor(v){
  try{
-  if(v==='perfil'&&S.me){S.myVotes=await B.votesOfUser(S.me.uid);R()}
+  if(v==='perfil'&&S.me){S.myVotes=await B.votesOfUser(S.me.uid);await refreshFriends();R()}
   else if(v==='search'){S.users=await B.listUsers();await refreshFriends();R()}
   else if(v==='user'){await refreshFriends();const p=await B.getUser(S.uid);S.uProf=p?pub(p):{u:'?',p:'',m:'',a:'',joined:''};const canSee=(S.me&&S.me.uid===S.uid)||isFriend(S.uid);S.uVotes=canSee?await B.votesOfUser(S.uid):[];R()}
  }catch(e){if(v==='perfil')S.myVotes=[];if(v==='search')S.users=[];if(v==='user'){S.uVotes=[];S.uProf=S.uProf||{u:'?',p:'',m:'',a:'',joined:''}}R()}
 }
 S.fr=[];
+function pendCount(){return S.me?(S.fr||[]).filter(f=>f.status==='pending'&&f.to===S.me.uid).length:0}
+function friendStats(){const acc=(S.fr||[]).filter(f=>f.status==='accepted').length;const inc=pendCount();const out=(S.fr||[]).filter(f=>f.status==='pending'&&f.from===S.me.uid).length;
+ return `<div class="stats" style="margin-bottom:12px"><div class="stat"><big>${inc}</big><span>Solicitudes recibidas</span></div><div class="stat"><big>${acc}</big><span>Amigos</span></div></div><div class="mu" style="margin:-4px 2px 12px">Solicitudes enviadas: ${out}</div>`}
 function friendOf(uid){return (S.fr||[]).find(x=>x.from===uid||x.to===uid)||null}
 function isFriend(uid){const f=friendOf(uid);return !!(f&&f.status==='accepted')}
 async function refreshFriends(){if(!S.me)return;try{S.fr=await B.listFriendDocs(S.me.uid)}catch(e){}}
@@ -315,7 +320,7 @@ function R(){
  document.getElementById('ov').innerHTML=(S.auth?authM():'')+(S.sheet?sheetH():'')+(S.fb?fbM():'');
 }
 function topH(){return `<div class="brand">${APP_ICON}<b>VotaFMS</b></div><div class="sp"></div><button class="ib" onclick="openFb()" aria-label="Enviar comentarios">${ico('chat',18)}</button>${S.me?`<button class="avbtn" onclick="go('perfil')" aria-label="Mi perfil">${avU(S.me,'')}</button>`:`<button class="btn sm" onclick="openAuth('in')">Entrar</button>`}`}
-function navH(){const items=[['home','Ligas','home'],['cal','Calendario','cal'],['search','Buscar','search'],['perfil','Perfil','user']];return items.map(([k,t,ic])=>`<button class="${nk()===k?'on':''}" onclick="go('${k}')"><span class="ni">${ico(ic,20)}</span>${t}</button>`).join('')}
+function navH(){const items=[['home','Ligas','home'],['cal','Calendario','cal'],['search','Buscar','search'],['perfil','Perfil','user']];return items.map(([k,t,ic])=>`<button class="${nk()===k?'on':''}" onclick="go('${k}')"><span class="ni">${ico(ic,20)}</span>${t}${k==='perfil'&&pendCount()?`<span class="nbadge">${pendCount()}</span>`:''}</button>`).join('')}
 
 function homeV(){
  const nx=CAL.filter(e=>e.k==='next');
@@ -476,7 +481,7 @@ function perfilV(){
  <label class="f">MC favorito</label><input id="pf-m" value="${esc(m.m||'')}">
  <label class="f">Sobre mí</label><textarea id="pf-a" rows="3">${esc(m.a||'')}</textarea>
  <button class="btn sm" style="width:100%;justify-content:center" onclick="saveProf()">Guardar cambios</button></div>
- ${friendsCard()}${statsCard(S.myVotes||[])}<div class="sec"><span>Mis votos</span><span>${S.myVotes?S.myVotes.length:'…'}</span></div>${voteList(S.myVotes,'perfil')}
+ ${friendStats()}${friendsCard()}${statsCard(S.myVotes||[])}<div class="sec"><span>Mis votos</span><span>${S.myVotes?S.myVotes.length:'…'}</span></div>${voteList(S.myVotes,'perfil')}
  <button class="btn s" onclick="logout()">${ico('logout',18)} Cerrar sesión</button>`}
 async function saveProf(){const m=S.me;if(!m)return;const prof={p:document.getElementById('pf-p').value.trim(),m:document.getElementById('pf-m').value.trim(),a:document.getElementById('pf-a').value.trim()};
  try{await B.updateUser(m.uid,prof);S.me={...S.me,...prof};S.msgP='Cambios guardados'}catch(e){S.msgP='No se pudieron guardar los cambios.'}R()}
