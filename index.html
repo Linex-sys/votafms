@@ -247,6 +247,7 @@ const B={
  async addVote(v){const fm=FB.fm;await fm.addDoc(fm.collection(FB.db,'votes'),v)},
  async updateVote(id,v){const fm=FB.fm;await fm.updateDoc(fm.doc(FB.db,'votes',id),v)},
  async deleteVote(id){const fm=FB.fm;await fm.deleteDoc(fm.doc(FB.db,'votes',id))},
+ async deleteUserDoc(uid,u){const fm=FB.fm;await fm.deleteDoc(fm.doc(FB.db,'users',uid));await fm.deleteDoc(fm.doc(FB.db,'usernames',u))},
  async listFriendDocs(uid){const fm=FB.fm;const [a,b]=await Promise.all([fm.getDocs(fm.query(fm.collection(FB.db,'friends'),fm.where('from','==',uid))),fm.getDocs(fm.query(fm.collection(FB.db,'friends'),fm.where('to','==',uid)))]);const out=[];a.docs.concat(b.docs).forEach(d=>{if(!out.find(x=>x.id===d.id))out.push({id:d.id,...d.data()})});return out},
  async sendFriend(me,meName,to,toName){const fm=FB.fm;await fm.setDoc(fm.doc(FB.db,'friends',me+'_'+to),{from:me,to,status:'pending',fromName:meName,toName,ts:Date.now()})},
  async acceptFriend(id){const fm=FB.fm;await fm.updateDoc(fm.doc(FB.db,'friends',id),{status:'accepted'})},
@@ -317,7 +318,7 @@ function R(){
  }
  document.getElementById('top').innerHTML=topH();
  document.getElementById('nav').innerHTML=navH();
- document.getElementById('ov').innerHTML=(S.auth?authM():'')+(S.sheet?sheetH():'')+(S.fb?fbM():'');
+ document.getElementById('ov').innerHTML=(S.auth?authM():'')+(S.sheet?sheetH():'')+(S.fb?fbM():'')+(S.delAsk?delM():'');
 }
 function topH(){return `<div class="brand">${APP_ICON}<b>VotaFMS</b></div><div class="sp"></div><button class="ib" onclick="openFb()" aria-label="Enviar comentarios">${ico('chat',18)}</button>${S.me?`<button class="avbtn" onclick="go('perfil')" aria-label="Mi perfil">${avU(S.me,'')}</button>`:`<button class="btn sm" onclick="openAuth('in')">Entrar</button>`}`}
 function navH(){const items=[['home','Ligas','home'],['cal','Calendario','cal'],['search','Buscar','search'],['perfil','Perfil','user']];return items.map(([k,t,ic])=>`<button class="${nk()===k?'on':''}" onclick="go('${k}')"><span class="ni">${ico(ic,20)}</span>${t}${k==='perfil'&&pendCount()?`<span class="nbadge">${pendCount()}</span>`:''}</button>`).join('')}
@@ -482,6 +483,7 @@ function perfilV(){
  <label class="f">Sobre mí</label><textarea id="pf-a" rows="3">${esc(m.a||'')}</textarea>
  <button class="btn sm" style="width:100%;justify-content:center" onclick="saveProf()">Guardar cambios</button></div>
  ${friendStats()}${friendsCard()}${statsCard(S.myVotes||[])}<div class="sec"><span>Mis votos</span><span>${S.myVotes?S.myVotes.length:'…'}</span></div>${voteList(S.myVotes,'perfil')}
+ <button class="btn s" style="color:#FF6B7A;margin-top:8px" onclick="S.delAsk=true;R()">Eliminar mi cuenta</button>
  <button class="btn s" onclick="logout()">${ico('logout',18)} Cerrar sesión</button>`}
 async function saveProf(){const m=S.me;if(!m)return;const prof={p:document.getElementById('pf-p').value.trim(),m:document.getElementById('pf-m').value.trim(),a:document.getElementById('pf-a').value.trim()};
  try{await B.updateUser(m.uid,prof);S.me={...S.me,...prof};S.msgP='Cambios guardados'}catch(e){S.msgP='No se pudieron guardar los cambios.'}R()}
@@ -601,6 +603,25 @@ async function deleteMine(){const v=S.viewList[S.vi];if(!v||!v.id)return;
  if(!confirm('¿Borrar esta votación? No se puede deshacer.'))return;
  try{await B.deleteVote(v.id);S.myVotes=(S.myVotes||[]).filter(x=>x.id!==v.id);S.msgP='Votación borrada';S.v='perfil';R();window.scrollTo(0,0)}
  catch(e){S.msgP='No se pudo borrar. Revisa las reglas de Firestore.';S.v='perfil';R()}}
+
+function delM(){return `<div class="ov" onclick="${S.delBusy?'':'S.delAsk=false;R()'}"><div class="sh" onclick="event.stopPropagation()"><b style="font-size:19px">¿Estás seguro que quieres eliminar tu cuenta?</b><div class="mu" style="margin:8px 0 16px">Se borrarán tu perfil, tus votaciones, tus amigos y tu nombre de usuario. Esta acción no se puede deshacer.</div><button class="btn" style="background:#DC2626;box-shadow:none" onclick="deleteAccount()" ${S.delBusy?'disabled':''}>${S.delBusy?'Borrando…':'Sí, eliminar mi cuenta'}</button><button class="btn s" onclick="S.delAsk=false;R()" ${S.delBusy?'disabled':''}>Cancelar</button></div></div>`}
+async function deleteAccount(){
+ const user=FB.auth.currentUser;if(!user||!S.me)return;
+ const last=user.metadata&&user.metadata.lastSignInTime?new Date(user.metadata.lastSignInTime).getTime():0;
+ if(Date.now()-last>5*60*1000){S.delAsk=false;S.msgP='Por seguridad, cierra sesión, vuelve a entrar y luego borra tu cuenta.';return R()}
+ S.delBusy=true;R();
+ try{
+  const uid=S.me.uid,u=S.me.u;
+  const votes=await B.votesOfUser(uid);
+  for(const v of votes){await B.deleteVote(v.id)}
+  const fr=await B.listFriendDocs(uid);
+  for(const f of fr){await B.removeFriend(f.id)}
+  await B.deleteUserDoc(uid,u);
+  await FB.am.deleteUser(user);
+  S.me=null;S.myVotes=null;S.fr=[];S.delAsk=false;S.delBusy=false;
+  S.msgP='Tu cuenta fue eliminada';S.v='home';R();window.scrollTo(0,0);
+ }catch(e){S.delBusy=false;S.delAsk=false;S.msgP='No se pudo borrar la cuenta. Cierra sesión, vuelve a entrar e intenta de nuevo.';R()}
+}
 
 const VIEW={libre:libreV,home:homeV,lg:lgv,vote:voteV,res:resV,cal:calV,search:searchV,user:userV,vd:vdV,perfil:perfilV};
 async function init(){const ok=await initFB();
