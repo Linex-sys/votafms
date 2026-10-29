@@ -216,7 +216,7 @@ async function initFB(){
   return true;
  }catch(e){console.error(e);return false}
 }
-function setMe(uid,prof){S.me={uid,...prof};S.auth=null;R();
+function setMe(uid,prof){S.me={uid,...prof};S.auth=null;R();refreshMine();
  if(S.pend){const v=S.pend;S.pend=null;return pushVote(v)}
  if(S.v==='perfil')loadFor('perfil')}
 function watchAuth(){
@@ -238,7 +238,9 @@ const B={
  async updateUser(uid,prof){const fm=FB.fm;await fm.updateDoc(fm.doc(FB.db,'users',uid),prof)},
  async listUsers(){const fm=FB.fm;const s=await fm.getDocs(fm.query(fm.collection(FB.db,'users'),fm.limit(200)));return s.docs.map(d=>({uid:d.id,...pub(d.data())}))},
  async addVote(v){const fm=FB.fm;await fm.addDoc(fm.collection(FB.db,'votes'),v)},
- async votesOfUser(uid){const fm=FB.fm;const s=await fm.getDocs(fm.query(fm.collection(FB.db,'votes'),fm.where('uid','==',uid),fm.limit(500)));return s.docs.map(d=>d.data()).sort((a,b)=>b.ts-a.ts)},
+ async updateVote(id,v){const fm=FB.fm;await fm.updateDoc(fm.doc(FB.db,'votes',id),v)},
+ async deleteVote(id){const fm=FB.fm;await fm.deleteDoc(fm.doc(FB.db,'votes',id))},
+ async votesOfUser(uid){const fm=FB.fm;const s=await fm.getDocs(fm.query(fm.collection(FB.db,'votes'),fm.where('uid','==',uid),fm.limit(500)));return s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.ts-a.ts)},
  async votesKey(key){const fm=FB.fm;const s=await fm.getDocs(fm.query(fm.collection(FB.db,'votes'),fm.where('key','==',key),fm.limit(1000)));return s.docs.map(d=>d.data())},
  async addComment(c){const fm=FB.fm;await fm.addDoc(fm.collection(FB.db,'comments'),c)}
 };
@@ -298,7 +300,7 @@ function lgv(){
  const groups=ents.map(({e,ci})=>{const bs=e.b||[];
   return `<div class="sec"><span>${esc(jLabel(e))}</span><span>${esc(e.d||'Fecha por confirmar')}</span></div>
   <div class="pill ${e.k==='next'?'next':e.k==='done'?'done':''}" style="margin:0 0 10px">${esc(e.st)}</div>
-  ${bs.length?bs.map((b,bi)=>{const x=batOf(e,b);return `<button class="bat" onclick="startBat(${ci},${bi})"><span class="side">${esc(x.a)}</span><span class="vs">VS</span><span class="side r">${esc(x.b)}</span></button>${x.sa!=null?`<div class="sc2">${fmt(x.sa)} – ${fmt(x.sb)}</div>`:'<div style="height:8px"></div>'}`}).join(''):'<div class="card mu" style="text-align:center">Aún no hay batallas confirmadas para esta jornada.</div>'}`}).join('');
+  ${bs.length?bs.map((b,bi)=>{const x=batOf(e,b);return `<button class="bat" onclick="startBat(${ci},${bi})"><span class="side">${esc(x.a)}</span><span class="vs">VS</span><span class="side r">${esc(x.b)}</span></button>${x.sa!=null?`<div class="sc2">${fmt(x.sa)} – ${fmt(x.sb)}</div>`:''}${myVoteOf(l.i,x)?'<div class="sc2" style="color:var(--ac);font-weight:800">✓ Votada · toca para editar</div>':'<div style="height:8px"></div>'}`}).join(''):'<div class="card mu" style="text-align:center">Aún no hay batallas confirmadas para esta jornada.</div>'}`}).join('');
  return `<div class="lgwrap" style="--ac:${ac1};--ac2:${ac2};--lc:${l.c}">
  <button class="back" onclick="go('home')">${ico('back',18)} Ligas</button>
  <div class="banner" style="--c:${l.c};--c2:${l.c2}">${logo(l,70)}<div style="flex:1;min-width:0"><span class="kicker">${esc(cur.st)}</span><h1>${esc(l.n)}</h1><p>${cur.d?esc(cur.d):'Fecha por confirmar'}</p></div></div>
@@ -311,7 +313,7 @@ function lgv(){
 }
 function startBat(ci,bi){const e=CAL[ci];const b=batOf(e,e.b[bi]);start({a:b.a,b:b.b,j:b.j,y:b.y||null})}
 function ytGo(){const m=(S.yt||'').match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/);if(!m){S.err='Ese link no parece de YouTube. Prueba con otro.';return R()}S.err='';start({a:S.na.trim()||'MC 1',b:S.nb.trim()||'MC 2',j:'Batalla por link',y:m[1]})}
-function start(b){const l=curL();S.bt=b;S.libre=!!b.libre;S.ri=0;S.rep=null;S.rounds=RF[l.f].slice();S.sc=S.rounds.map(rd=>[Array(sz(rd)).fill(null),Array(sz(rd)).fill(null)]);S.v='vote';R();window.scrollTo(0,0)}
+function start(b){const l=curL();S.bt=b;S.libre=!!b.libre;S.editId=null;const exK=(S.libre?'libre':S.lg)+'|'+b.a+'|'+b.b;const exV=(S.myVotes||[]).find(x=>x.key===exK&&x.sc);if(exV)return startEdit(exV);S.ri=0;S.rep=null;S.rounds=RF[l.f].slice();S.sc=S.rounds.map(rd=>[Array(sz(rd)).fill(null),Array(sz(rd)).fill(null)]);S.v='vote';R();window.scrollTo(0,0)}
 function sumR(k,m){return sum(S.sc[k][m])}
 function tot(m){return S.rounds.reduce((a,_,k)=>a+sumR(k,m),0)}
 function mainTot(m){return S.rounds.reduce((a,rd,k)=>a+(rd.rep?0:sumR(k,m)),0)}
@@ -380,7 +382,7 @@ function sheetH(){const h=S.sheet;const vals=[];for(let i=0;i<=20;i++)vals.push(
  return `<div class="ov" onclick="closeSheet()"><div class="sh" onclick="event.stopPropagation()"><div class="row" style="justify-content:space-between;margin-bottom:14px"><b style="font-size:17px">${esc(h.m?S.bt.b:S.bt.a)}</b><span class="mu">Elige de 0 a 10</span></div><div class="pk">${vals.map(v=>`<button onclick="setV(${v})">${fmt(v)}</button>`).join('')}<button class="clr" onclick="setV(null)">Borrar</button></div></div></div>`}
 function buildVote(){const a=counted(0),b=counted(1);
  const rows=S.rounds.map((r,k)=>({r:r.n,ta:sumR(k,0),tb:sumR(k,1),rep:!!r.rep})).filter(r=>S.rep==='voted'||!r.rep);
- return {l:S.lg,a:S.bt.a,b:S.bt.b,ta:a,tb:b,rows,date:today(),free:!!S.libre}}
+ return {l:S.lg,a:S.bt.a,b:S.bt.b,ta:a,tb:b,rows,date:today(),free:!!S.libre,j:S.bt.j||'',y:S.bt.y||null,rep:S.rep||'none',sc:S.sc.map(p=>({a:p[0],b:p[1]}))}}
 function summ(rows){let wa=0,wb=0,sa=0,sb=0;rows.forEach(r=>{sa+=r.ta;sb+=r.tb;if(r.ta>r.tb)wa++;else if(r.tb>r.ta)wb++});return {n:rows.length,wa,wb,sa,sb}}
 async function saveVote(){const v=buildVote();if(!S.me){S.pend=v;return openAuth('create')}await pushVote(v)}
 async function pushVote(v){
@@ -388,8 +390,8 @@ async function pushVote(v){
  let c={n:0,wa:0,wb:0};try{c=summ(await B.votesKey(v.key))}catch(e){}
  const cw=c.wa>=c.wb?0:1,uw=v.ta===v.tb?-1:(v.ta>v.tb?0:1);
  v.msg=uw<0?'Empate':c.n===0?'Primer voto de esta batalla':uw===cw?'Coincide con la mayoría':'Votaste distinto a la mayoría';
- try{await B.addVote(v)}catch(e){S.msgP='No se pudo guardar tu voto. Revisa tu conexión.';R();return}
- S.last=v;S.myVotes=null;S.v='res';S.comm=null;R();window.scrollTo(0,0);
+ try{const mine=await B.votesOfUser(S.me.uid);const ex=S.editId||((mine.find(x=>x.key===v.key)||{}).id);if(ex){await B.updateVote(ex,v)}else{await B.addVote(v)}}catch(e){S.msgP='No se pudo guardar tu voto. Revisa tu conexión y las reglas de Firestore.';R();return}
+ S.last=v;S.editId=null;S.v='res';S.comm=null;refreshMine();R();window.scrollTo(0,0);
  try{S.comm=summ(await B.votesKey(v.key))}catch(e){S.comm={n:0,wa:0,wb:0,sa:0,sb:0}}
  R();
 }
@@ -413,12 +415,12 @@ function statsCard(votes){const n=votes.length,by=L.map(l=>({l,c:votes.filter(v=
  const ring=by.map(o=>{const len=o.c/n*C,s=`<circle r="44" cx="60" cy="60" fill="none" stroke="${colr(o.l)}" stroke-width="14" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 60 60)"/>`;off+=len;return s}).join('');
  return `<div class="card"><div class="stats" style="margin-bottom:14px"><div class="stat"><big>${n}</big><span>Batallas votadas</span></div><div class="stat"><big>${by.length}</big><span>Ligas votadas</span></div></div>${n?`<div class="row"><svg width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="Votos por liga"><circle r="44" cx="60" cy="60" fill="none" stroke="var(--bd)" stroke-width="14"/>${ring}<text x="60" y="67" text-anchor="middle" font-size="22" font-weight="900" fill="var(--tx)">${n}</text></svg><div style="flex:1;min-width:0">${by.map(o=>`<div style="font-size:13px;margin:5px 0"><span style="color:${colr(o.l)};font-size:16px">●</span> ${esc(o.l.n)} <span class="mu">· ${o.c}</span></div>`).join('')}</div></div>`:'<div class="mu">Sin votos todavía.</div>'}</div>`}
 function voteList(list,from){if(list===null)return '<div class="card mu">Cargando votos…</div>';
- return list.length?list.map((v,i)=>{const l=L.find(x=>x.i===v.l);return `<button class="vrow" onclick="viewVote(${i},'${from}')">${l?logo(l,34):''}<div style="flex:1;min-width:0"><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.a)} vs ${esc(v.b)}</b><div class="mu" style="font-size:12px">${v.free?'Batalla libre · ':''}${esc(l?l.n:'')} · ${esc(v.date||'')}</div></div><b>${fmt(v.ta)} – ${fmt(v.tb)}</b></button>`}).join(''):'<div class="card mu">Sin votos todavía.</div>'}
+ return list.length?list.map((v,i)=>{const l=L.find(x=>x.i===v.l);return `<button class="vrow" onclick="viewVote(${i},'${from}')">${l?logo(l,34):''}<div style="flex:1;min-width:0"><span class="pill ${v.free?'':'next'}">${v.free?'Batalla libre':'Batalla de liga'}</span><b style="display:block;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.a)} vs ${esc(v.b)}</b><div class="mu" style="font-size:12px">${esc(l?l.n:'')} · ${esc(v.date||'')}</div></div><b>${fmt(v.ta)} – ${fmt(v.tb)}</b></button>`}).join(''):'<div class="card mu">Sin votos todavía.</div>'}
 function viewVote(i,from){S.viewList=from==='perfil'?(S.myVotes||[]):(S.uVotes||[]);S.vi=i;S.vb=from;go('vd')}
 function userV(){if(!S.uProf)return `<button class="back" onclick="go('search')">${ico('back',18)} Buscar</button><div class="card mu">Cargando perfil…</div>`;
  return `<button class="back" onclick="go('search')">${ico('back',18)} Buscar</button>${profileHead(S.uProf,false)}${statsCard(S.uVotes||[])}<div class="sec"><span>Votos</span><span>${(S.uVotes||[]).length}</span></div>${voteList(S.uVotes,'user')}`}
 function vdV(){const v=S.viewList[S.vi];if(!v)return searchV();const a=v.ta,b=v.tb,w=a===b?'Empate':`Ganador: ${a>b?v.a:v.b} por ${fmt(Math.abs(a-b))} puntos`,l=L.find(x=>x.i===v.l);
- return `<button class="back" onclick="go('${S.vb==='perfil'?'perfil':'user'}')">${ico('back',18)} Volver</button><div class="banner" style="--c:${l.c};--c2:${l.c2}">${logo(l,56)}<div style="flex:1;min-width:0"><span class="kicker">Voto de ${esc(v.u||'')}</span><h1 style="font-size:19px">${esc(v.a)} vs ${esc(v.b)}</h1><p>${esc(l.n)} · ${esc(v.date||'')}</p></div></div><div class="win">${w}</div><div class="card"><div class="tbl"><span></span><span class="h" style="color:var(--ac)">${esc(v.a)}</span><span class="h" style="color:var(--b2)">${esc(v.b)}</span>${v.rows.map(r=>`<span class="n">${esc(r.r)}</span><span class="c">${fmt(r.ta)}</span><span class="c">${fmt(r.tb)}</span>`).join('')}<b>Total</b><span class="c">${fmt(a)}</span><span class="c">${fmt(b)}</span></div></div><div class="mu" style="text-align:center">Solo lectura: este voto no se puede modificar.</div>`}
+ return `<button class="back" onclick="go('${S.vb==='perfil'?'perfil':'user'}')">${ico('back',18)} Volver</button><div class="banner" style="--c:${l.c};--c2:${l.c2}">${logo(l,56)}<div style="flex:1;min-width:0"><span class="kicker">Voto de ${esc(v.u||'')}</span><h1 style="font-size:19px">${esc(v.a)} vs ${esc(v.b)}</h1><p>${esc(l.n)} · ${esc(v.date||'')}</p></div></div><div class="win">${w}</div><div class="card"><div class="tbl"><span></span><span class="h" style="color:var(--ac)">${esc(v.a)}</span><span class="h" style="color:var(--b2)">${esc(v.b)}</span>${v.rows.map(r=>`<span class="n">${esc(r.r)}</span><span class="c">${fmt(r.ta)}</span><span class="c">${fmt(r.tb)}</span>`).join('')}<b>Total</b><span class="c">${fmt(a)}</span><span class="c">${fmt(b)}</span></div></div>${S.vb==='perfil'?`<div class="row" style="gap:8px;margin-top:6px"><button class="btn" style="margin:0" onclick="editMine()">Editar voto</button><button class="btn s" style="margin:0" onclick="deleteMine()">Borrar voto</button></div>`:'<div class="mu" style="text-align:center">Solo lectura: este voto no se puede modificar.</div>'}`}
 
 function perfilV(){
  if(!S.me)return `<div class="hero"><span class="kicker">Tu cuenta</span><h1>Guarda tus votos</h1><p>Crea una cuenta para votar, ver tus estadísticas y aparecer en la comunidad.</p></div><div style="height:14px"></div><button class="btn" onclick="openAuth('create')">Crear cuenta</button><button class="btn s" onclick="openAuth('in')">Ya tengo cuenta</button>`;
@@ -532,6 +534,24 @@ function lbStart(){const B2=S.lb;const a=B2.a.trim(),b=B2.b.trim();
  let y=null;
  if(B2.yt.trim()){const m=B2.yt.trim().match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/);if(!m){B2.err='Ese link no parece de YouTube. Déjalo vacío o revisa el link.';return R()}y=m[1]}
  B2.err='';S.lg=B2.lg;start({a,b,j:'Batalla libre',y,libre:true})}
+
+function myVoteOf(lg,x){const key=lg+'|'+x.a+'|'+x.b;return (S.myVotes||[]).find(v=>!v.free&&v.key===key)||null}
+async function refreshMine(){if(!S.me)return;try{S.myVotes=await B.votesOfUser(S.me.uid);R()}catch(e){}}
+function startEdit(v){
+ if(!v.sc){S.msgP='Esta votación es antigua y no se puede editar. Bórrala y vótala otra vez.';S.v='perfil';return R()}
+ const l=L.find(x=>x.i===v.l)||L[0];
+ S.lg=v.l;S.libre=!!v.free;
+ S.bt={a:v.a,b:v.b,j:v.j||(v.free?'Batalla libre':l.n+' · '+v.date),y:v.y||null,libre:!!v.free};
+ S.rounds=RF[l.f].slice();if(v.rep==='voted')S.rounds.push(REP);
+ S.rep=v.rep==='voted'?'voted':(v.rep==='skipped'?'skipped':null);
+ S.sc=v.sc.map(p=>[p.a,p.b]);
+ S.ri=0;S.editId=v.id;S.v='vote';R();window.scrollTo(0,0);
+}
+function editMine(){const v=S.viewList[S.vi];if(v)startEdit(v)}
+async function deleteMine(){const v=S.viewList[S.vi];if(!v||!v.id)return;
+ if(!confirm('¿Borrar esta votación? No se puede deshacer.'))return;
+ try{await B.deleteVote(v.id);S.myVotes=(S.myVotes||[]).filter(x=>x.id!==v.id);S.msgP='Votación borrada';S.v='perfil';R();window.scrollTo(0,0)}
+ catch(e){S.msgP='No se pudo borrar. Revisa las reglas de Firestore.';S.v='perfil';R()}}
 
 const VIEW={libre:libreV,home:homeV,lg:lgv,vote:voteV,res:resV,cal:calV,search:searchV,user:userV,vd:vdV,perfil:perfilV};
 async function init(){const ok=await initFB();
