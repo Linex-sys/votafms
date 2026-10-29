@@ -2,6 +2,7 @@
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>VotaFMS</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20width%3D%2234%22%20height%3D%2234%22%20viewBox%3D%220%200%2064%2064%22%20aria-hidden%3D%22true%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22vg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23FF4D5E%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23FF9A3D%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22url%28%23vg%29%22/%3E%3Crect%20x%3D%2224%22%20y%3D%2210%22%20width%3D%2216%22%20height%3D%2228%22%20rx%3D%228%22%20fill%3D%22%23fff%22/%3E%3Cpath%20d%3D%22M16%2030a16%2016%200%200%200%2032%200%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%2232%22%20y1%3D%2246%22%20x2%3D%2232%22%20y2%3D%2253%22%20stroke%3D%22%23fff%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%2224%22%20y1%3D%2253%22%20x2%3D%2240%22%20y2%3D%2253%22%20stroke%3D%22%23fff%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2249%22%20cy%3D%2215%22%20r%3D%2210%22%20fill%3D%22%23FFD23F%22/%3E%3Cpath%20d%3D%22M44.5%2015l3%203%205.5-5.5%22%20fill%3D%22none%22%20stroke%3D%22%231a1200%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E">
 <style>
 :root{--bg:#0A0F1E;--bg2:#101829;--cd:#16203A;--cd2:#1D2A4A;--tx:#F5F7FC;--mu:#9CA8C6;--bd:rgba(255,255,255,.09);--ac:#FF4D5E;--ac2:#FF9A3D;--b2:#4DA3FF;--sh:0 12px 30px rgba(0,0,0,.35);--r:20px;color-scheme:dark}
 @media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#F1F4FB;--bg2:#FFFFFF;--cd:#FFFFFF;--cd2:#EEF2FA;--tx:#0F172A;--mu:#5B6785;--bd:rgba(15,23,42,.08);--sh:0 10px 26px rgba(15,23,42,.08);color-scheme:light}}
@@ -120,6 +121,12 @@ label.f{display:block;font-size:12px;color:var(--mu);margin:0 0 6px 2px;font-wei
 .lgwrap .pill.next{color:var(--ac);border-color:color-mix(in srgb,var(--ac) 45%,transparent);background:color-mix(in srgb,var(--ac) 16%,transparent)}
 .lgwrap .vs{background:linear-gradient(135deg,var(--ac),var(--ac2))}
 .lgwrap .sec span:last-child{color:var(--mu)}
+button.card{width:100%;text-align:left;color:var(--tx);font:inherit;cursor:pointer;display:block}
+.card.libre{background:linear-gradient(135deg,rgba(255,77,94,.18),rgba(77,163,255,.14));border-color:rgba(255,255,255,.14)}
+.lbi{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.lpick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.lpick button{border:2px solid transparent;background:var(--cd);border-radius:16px;padding:9px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--tx);font-size:11px;font-weight:800;box-shadow:var(--sh)}
+.lpick button.on{border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 28%,transparent)}
 .gbadge{width:40px;height:40px;border-radius:12px;background:#fff;color:#4285F4;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;flex:0 0 auto;box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:7;display:flex;justify-content:space-around;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(10,15,30,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--bd)}
 .nav button{flex:1;max-width:120px;border:0;background:none;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:4px;cursor:pointer}
@@ -164,6 +171,7 @@ const RF={
 const REP={n:'Réplica',rep:1,p:[{c:6}]};
 let S={v:'home',lg:null,bt:null,ri:0,sc:[],rounds:[],rep:null,yt:'',na:'',nb:'',err:'',q:'',uid:null,vi:0,vb:'perfil',viewList:[],sheet:null,auth:null,fb:false,fbs:false,fbt:'',fbe:'',kpe:'',pend:null,last:null,msgP:'',users:null,myVotes:null,uProf:null,uVotes:null,comm:null,me:null,authBusy:false};
 let FB=null;
+S.lb={yt:'',a:'',b:'',lg:null,err:''};S.libre=false;
 
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sum=a=>a.reduce((x,y)=>x+(y||0),0);
@@ -212,12 +220,13 @@ const B={
  async addComment(c){const fm=FB.fm;await fm.addDoc(fm.collection(FB.db,'comments'),c)}
 };
 
+const APP_ICON=`<svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="vg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF4D5E"/><stop offset="1" stop-color="#FF9A3D"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#vg)"/><rect x="24" y="10" width="16" height="28" rx="8" fill="#fff"/><path d="M16 30a16 16 0 0 0 32 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><line x1="32" y1="46" x2="32" y2="53" stroke="#fff" stroke-width="4" stroke-linecap="round"/><line x1="24" y1="53" x2="40" y2="53" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="49" cy="15" r="10" fill="#FFD23F"/><path d="M44.5 15l3 3 5.5-5.5" fill="none" stroke="#1a1200" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const IC={home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>',cal:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',chat:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',back:'<path d="M15 18l-6-6 6-6"/>',play:'<circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/>',logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'};
 function ico(n,s=20){return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`}
 function logo(l,w){if(LOGO[l.i])return `<span style="display:inline-flex;flex:0 0 auto;background:#fff;border-radius:14px;padding:5px;box-shadow:0 6px 14px rgba(0,0,0,.28)"><img src="${LOGO[l.i]}" width="${w}" height="${Math.round(w*1.15)}" alt="${esc(l.n)}" style="display:block;object-fit:contain"></span>`;return `<div style="width:${w}px;height:${Math.round(w*1.15)}px;border-radius:12px;background:${l.c};display:flex;align-items:center;justify-content:center;color:${l.tx};font-weight:900">${l.t}</div>`}
 const av=(name,cls='')=>`<span class="av ${cls}">${esc(String(name||'?')[0].toUpperCase())}</span>`;
 function avU(u,cls=''){return u&&u.foto?`<img class="av ${cls}" src="${u.foto}" alt="">`:`<span class="av ${cls}">${esc(String((u&&u.u)||'?')[0].toUpperCase())}</span>`}
-const nk=()=>({home:'home',lg:'home',vote:'home',res:'home',cal:'cal',search:'search',user:'search',vd:S.vb==='perfil'?'perfil':'search',perfil:'perfil'})[S.v]||'home';
+const nk=()=>({libre:'home',home:'home',lg:'home',vote:'home',res:'home',cal:'cal',search:'search',user:'search',vd:S.vb==='perfil'?'perfil':'search',perfil:'perfil'})[S.v]||'home';
 const accentOf=l=>l.i==='in'?['#CA8A04','#FACC15']:[l.c,l.c2];
 const jLabel=e=>{const m=e.n.match(/Jornada \d+/);return m?m[0]:e.n};
 function batOf(e,b){if(typeof b==='string'){const p=b.split(/ vs /i);return {a:(p[0]||'').trim(),b:(p[1]||'').trim(),sa:null,sb:null,j:e.n+' · '+e.d}}return {a:b.a,b:b.b,sa:b.sa,sb:b.sb,j:e.n+' · '+e.d}}
@@ -237,12 +246,13 @@ function R(){
  document.getElementById('app').innerHTML=(VIEW[S.v]||homeV)();
  document.getElementById('ov').innerHTML=(S.auth?authM():'')+(S.sheet?sheetH():'')+(S.fb?fbM():'');
 }
-function topH(){return `<div class="brand"><span style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:14px">V</span><b>VotaFMS</b></div><div class="sp"></div><button class="ib" onclick="openFb()" aria-label="Enviar comentarios">${ico('chat',18)}</button>${S.me?`<button class="avbtn" onclick="go('perfil')" aria-label="Mi perfil">${avU(S.me,'')}</button>`:`<button class="btn sm" onclick="openAuth('in')">Entrar</button>`}`}
+function topH(){return `<div class="brand">${APP_ICON}<b>VotaFMS</b></div><div class="sp"></div><button class="ib" onclick="openFb()" aria-label="Enviar comentarios">${ico('chat',18)}</button>${S.me?`<button class="avbtn" onclick="go('perfil')" aria-label="Mi perfil">${avU(S.me,'')}</button>`:`<button class="btn sm" onclick="openAuth('in')">Entrar</button>`}`}
 function navH(){const items=[['home','Ligas','home'],['cal','Calendario','cal'],['search','Buscar','search'],['perfil','Perfil','user']];return items.map(([k,t,ic])=>`<button class="${nk()===k?'on':''}" onclick="go('${k}')"><span class="ni">${ico(ic,20)}</span>${t}</button>`).join('')}
 
 function homeV(){
  const nx=CAL.filter(e=>e.k==='next');
  return `<section class="hero"><span class="kicker">Temporada 2026/27</span><h1>Vota cada batalla</h1><p>Elige tu FMS, mira la batalla y puntúa ronda por ronda.</p></section>
+ <button class="card libre" onclick="go('libre')"><div class="row"><div class="lbi">${ico('play',22)}</div><div style="flex:1;min-width:0"><b style="font-size:16px">Batalla libre</b><div class="mu">Vota cualquier batalla, aunque no sea de una liga.</div></div>${ico('back',18).replace('<svg','<svg style="transform:rotate(180deg);color:var(--mu)"')}</div></button>
  <div class="sec"><span>Ligas</span><span>${L.length}</span></div>
  <div class="lgrid">${L.map(l=>`<button class="ltile" style="--c:${l.c};--c2:${l.c2};--tx2:${l.tx}" onclick="openLg('${l.i}')">${logo(l,56)}<span>${esc(l.n.replace('FMS ',''))}</span></button>`).join('')}</div>
  <div class="sec"><span>Próximas</span></div>
@@ -270,18 +280,18 @@ function lgv(){
 }
 function startBat(ci,bi){const e=CAL[ci];const b=batOf(e,e.b[bi]);start({a:b.a,b:b.b,j:b.j,y:null})}
 function ytGo(){const m=(S.yt||'').match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/);if(!m){S.err='Ese link no parece de YouTube. Prueba con otro.';return R()}S.err='';start({a:S.na.trim()||'MC 1',b:S.nb.trim()||'MC 2',j:'Batalla por link',y:m[1]})}
-function start(b){const l=curL();S.bt=b;S.ri=0;S.rep=null;S.rounds=RF[l.f].slice();S.sc=S.rounds.map(rd=>[Array(sz(rd)).fill(null),Array(sz(rd)).fill(null)]);S.v='vote';R();window.scrollTo(0,0)}
+function start(b){const l=curL();S.bt=b;S.libre=!!b.libre;S.ri=0;S.rep=null;S.rounds=RF[l.f].slice();S.sc=S.rounds.map(rd=>[Array(sz(rd)).fill(null),Array(sz(rd)).fill(null)]);S.v='vote';R();window.scrollTo(0,0)}
 function sumR(k,m){return sum(S.sc[k][m])}
 function tot(m){return S.rounds.reduce((a,_,k)=>a+sumR(k,m),0)}
 function mainTot(m){return S.rounds.reduce((a,rd,k)=>a+(rd.rep?0:sumR(k,m)),0)}
 function counted(m){return S.rep==='voted'?tot(m):mainTot(m)}
 
 function voteV(){
- const b=S.bt,l=curL(),done=S.ri>=S.rounds.length;
+ const b=S.bt,l=curL(),done=S.ri>=S.rounds.length;const [ac1,ac2]=accentOf(l);
  const media=b.y?`<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${b.y}" title="Video de la batalla" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div><a href="https://www.youtube.com/watch?v=${b.y}" target="_blank" rel="noopener" class="btn s" style="text-decoration:none;margin-bottom:14px">${ico('play',18)} Abrir en YouTube</a>`:`<div class="video"><div style="text-align:center">${ico('play',44)}<div class="mu" style="margin-top:8px">Video de la batalla</div></div></div>`;
- return `<button class="back" onclick="go('lg')">${ico('back',18)} ${esc(l.n)}</button>
+ return `<div class="lgwrap" style="--ac:${ac1};--ac2:${ac2};--lc:${l.c}"><button class="back" onclick="go('${S.libre?'libre':'lg'}')">${ico('back',18)} ${S.libre?'Batalla libre':esc(l.n)}</button>
  <div class="card"><div class="match"><div class="pl">${av(b.a,'lg')}<span class="n" style="color:var(--ac)">${esc(b.a)}</span></div><span class="vs">VS</span><div class="pl">${av(b.b,'lg')}<span class="n" style="color:var(--b2)">${esc(b.b)}</span></div></div><div class="mu" style="text-align:center;margin-top:10px">${esc(b.j||'')}</div></div>
- ${media}${done?summaryV():roundV()}`;
+ ${media}${done?summaryV():roundV()}</div>`;
 }
 function roundV(){
  const rd=S.rounds[S.ri],n=S.rounds.length;
@@ -344,11 +354,11 @@ function sheetH(){const h=S.sheet,cur=h.str||'';const keys=['7','8','9','4','5',
 
 function buildVote(){const a=counted(0),b=counted(1);
  const rows=S.rounds.map((r,k)=>({r:r.n,ta:sumR(k,0),tb:sumR(k,1),rep:!!r.rep})).filter(r=>S.rep==='voted'||!r.rep);
- return {l:S.lg,a:S.bt.a,b:S.bt.b,ta:a,tb:b,rows,date:today()}}
+ return {l:S.lg,a:S.bt.a,b:S.bt.b,ta:a,tb:b,rows,date:today(),free:!!S.libre}}
 function summ(rows){let wa=0,wb=0,sa=0,sb=0;rows.forEach(r=>{sa+=r.ta;sb+=r.tb;if(r.ta>r.tb)wa++;else if(r.tb>r.ta)wb++});return {n:rows.length,wa,wb,sa,sb}}
 async function saveVote(){const v=buildVote();if(!S.me){S.pend=v;return openAuth('create')}await pushVote(v)}
 async function pushVote(v){
- v.uid=S.me.uid;v.u=S.me.u;v.key=ck(v.l,v.a,v.b);v.ts=Date.now();
+ v.uid=S.me.uid;v.u=S.me.u;v.key=ck(v.free?'libre':v.l,v.a,v.b);v.ts=Date.now();
  let c={n:0,wa:0,wb:0};try{c=summ(await B.votesKey(v.key))}catch(e){}
  const cw=c.wa>=c.wb?0:1,uw=v.ta===v.tb?-1:(v.ta>v.tb?0:1);
  v.msg=uw<0?'Empate':c.n===0?'Primer voto de esta batalla':uw===cw?'Coincide con la mayoría':'Votaste distinto a la mayoría';
@@ -377,7 +387,7 @@ function statsCard(votes){const n=votes.length,by=L.map(l=>({l,c:votes.filter(v=
  const ring=by.map(o=>{const len=o.c/n*C,s=`<circle r="44" cx="60" cy="60" fill="none" stroke="${colr(o.l)}" stroke-width="14" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 60 60)"/>`;off+=len;return s}).join('');
  return `<div class="card"><div class="stats" style="margin-bottom:14px"><div class="stat"><big>${n}</big><span>Batallas votadas</span></div><div class="stat"><big>${by.length}</big><span>Ligas votadas</span></div></div>${n?`<div class="row"><svg width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="Votos por liga"><circle r="44" cx="60" cy="60" fill="none" stroke="var(--bd)" stroke-width="14"/>${ring}<text x="60" y="67" text-anchor="middle" font-size="22" font-weight="900" fill="var(--tx)">${n}</text></svg><div style="flex:1;min-width:0">${by.map(o=>`<div style="font-size:13px;margin:5px 0"><span style="color:${colr(o.l)};font-size:16px">●</span> ${esc(o.l.n)} <span class="mu">· ${o.c}</span></div>`).join('')}</div></div>`:'<div class="mu">Sin votos todavía.</div>'}</div>`}
 function voteList(list,from){if(list===null)return '<div class="card mu">Cargando votos…</div>';
- return list.length?list.map((v,i)=>{const l=L.find(x=>x.i===v.l);return `<button class="vrow" onclick="viewVote(${i},'${from}')">${l?logo(l,34):''}<div style="flex:1;min-width:0"><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.a)} vs ${esc(v.b)}</b><div class="mu" style="font-size:12px">${esc(l?l.n:'')} · ${esc(v.date||'')}</div></div><b>${fmt(v.ta)} – ${fmt(v.tb)}</b></button>`}).join(''):'<div class="card mu">Sin votos todavía.</div>'}
+ return list.length?list.map((v,i)=>{const l=L.find(x=>x.i===v.l);return `<button class="vrow" onclick="viewVote(${i},'${from}')">${l?logo(l,34):''}<div style="flex:1;min-width:0"><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.a)} vs ${esc(v.b)}</b><div class="mu" style="font-size:12px">${v.free?'Batalla libre · ':''}${esc(l?l.n:'')} · ${esc(v.date||'')}</div></div><b>${fmt(v.ta)} – ${fmt(v.tb)}</b></button>`}).join(''):'<div class="card mu">Sin votos todavía.</div>'}
 function viewVote(i,from){S.viewList=from==='perfil'?(S.myVotes||[]):(S.uVotes||[]);S.vi=i;S.vb=from;go('vd')}
 function userV(){if(!S.uProf)return `<button class="back" onclick="go('search')">${ico('back',18)} Buscar</button><div class="card mu">Cargando perfil…</div>`;
  return `<button class="back" onclick="go('search')">${ico('back',18)} Buscar</button>${profileHead(S.uProf,false)}${statsCard(S.uVotes||[])}<div class="sec"><span>Votos</span><span>${(S.uVotes||[]).length}</span></div>${voteList(S.uVotes,'user')}`}
@@ -479,7 +489,25 @@ function imagenCuadrada(file,size){return new Promise((res,rej)=>{const img=new 
   let q=0.85,d=c.toDataURL('image/jpeg',q);while(d.length>350000&&q>0.4){q-=0.1;d=c.toDataURL('image/jpeg',q)}res(d)};
  img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('imagen'))};img.src=u})}
 
-const VIEW={home:homeV,lg:lgv,vote:voteV,res:resV,cal:calV,search:searchV,user:userV,vd:vdV,perfil:perfilV};
+function libreV(){const B2=S.lb,sel=B2.lg;
+ return `<button class="back" onclick="go('home')">${ico('back',18)} Inicio</button>
+ <h1 class="pg">Batalla libre</h1><div class="mu" style="margin:-8px 2px 14px">Vota cualquier batalla, sea de liga o de calle. El link de YouTube es opcional.</div>
+ <div class="card"><label class="f">Link de YouTube (opcional)</label><input placeholder="https://youtube.com/watch?v=..." value="${esc(B2.yt)}" oninput="S.lb.yt=this.value">
+ <div class="row" style="gap:8px;align-items:flex-start"><div style="flex:1;min-width:0"><label class="f">MC 1</label><input placeholder="Nombre" value="${esc(B2.a)}" oninput="S.lb.a=this.value"></div><div style="flex:1;min-width:0"><label class="f">MC 2</label><input placeholder="Nombre" value="${esc(B2.b)}" oninput="S.lb.b=this.value"></div></div>
+ ${B2.err?`<div class="err">${esc(B2.err)}</div>`:''}</div>
+ <div class="sec"><span>Color de la planilla</span><span>${sel?esc(L.find(x=>x.i===sel).n):'Elige uno'}</span></div>
+ <div class="lpick">${L.map(l=>`<button class="${sel===l.i?'on':''}" onclick="lbPick('${l.i}')">${logo(l,34)}<span>${esc(l.n.replace('FMS ',''))}</span></button>`).join('')}</div>
+ <button class="btn" style="margin-top:14px" onclick="lbStart()">Empezar a votar</button>`;
+}
+function lbPick(i){S.lb.lg=i;R()}
+function lbStart(){const B2=S.lb;const a=B2.a.trim(),b=B2.b.trim();
+ if(!a||!b){B2.err='Escribe el nombre de los dos MCs.';return R()}
+ if(!B2.lg){B2.err='Elige el color de la planilla.';return R()}
+ let y=null;
+ if(B2.yt.trim()){const m=B2.yt.trim().match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/);if(!m){B2.err='Ese link no parece de YouTube. Déjalo vacío o revisa el link.';return R()}y=m[1]}
+ B2.err='';S.lg=B2.lg;start({a,b,j:'Batalla libre',y,libre:true})}
+
+const VIEW={libre:libreV,home:homeV,lg:lgv,vote:voteV,res:resV,cal:calV,search:searchV,user:userV,vd:vdV,perfil:perfilV};
 async function init(){const ok=await initFB();
  if(!ok){document.getElementById('app').innerHTML='<div class="card">No se pudo conectar con la base de datos. Revisa tu conexión y recarga la página.</div>';return}
  watchAuth();R();}
