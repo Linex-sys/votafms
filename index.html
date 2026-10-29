@@ -171,6 +171,15 @@ button.card{width:100%;text-align:left;color:var(--tx);font:inherit;cursor:point
 .sbtn.on .sdot{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border-color:transparent;box-shadow:0 6px 14px color-mix(in srgb,var(--ac) 45%,transparent)}
 .slab{text-align:center;line-height:1.1;max-width:70px}
 .tbtn{border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.22);color:#fff;border-radius:999px;padding:6px 11px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap}
+.fp{position:fixed;right:10px;bottom:10px;width:min(94vw,390px);max-height:72vh;z-index:15;border-radius:20px;overflow:hidden;background:var(--cd);border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);box-shadow:0 20px 50px rgba(0,0,0,.5);display:flex;flex-direction:column}
+.fp.min{max-height:none}
+.fp-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;background:linear-gradient(90deg,var(--ac),var(--ac2));color:#fff;cursor:grab;touch-action:none;user-select:none}
+.fp-t{font-size:12px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fp-b{display:flex;flex:0 0 auto}
+.fp-b button{border:0;background:rgba(0,0,0,.25);color:#fff;width:28px;height:28px;border-radius:8px;cursor:pointer;margin-left:4px;font-weight:900;font-family:inherit}
+.fp-c{overflow-y:auto;padding:10px}
+.fp .stepbar{padding:0 0 10px}
+.fp .pl-card .pl-title{font-size:16px}
 .gbadge{width:40px;height:40px;border-radius:12px;background:#fff;color:#4285F4;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;flex:0 0 auto;box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:7;display:flex;justify-content:space-around;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(10,15,30,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--bd)}
 .nav button{flex:1;max-width:120px;border:0;background:none;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:4px;cursor:pointer}
@@ -216,7 +225,7 @@ const LINEUP={"es": ["Ibán", "Gazir", "Arkano", "Sweet Pain", "Babi", "Bélico"
 const REP={n:'Réplica',rep:1,p:[{c:6}]};
 let S={v:'home',lg:null,bt:null,ri:0,sc:[],rounds:[],rep:null,yt:'',na:'',nb:'',err:'',q:'',uid:null,vi:0,vb:'perfil',viewList:[],sheet:null,auth:null,fb:false,fbs:false,fbt:'',fbe:'',kpe:'',pend:null,last:null,msgP:'',users:null,myVotes:null,uProf:null,uVotes:null,comm:null,me:null,authBusy:false};
 let FB=null;
-S.lb={yt:'',a:'',b:'',lg:null,err:''};S.libre=false;S.pi=0;S.hideTot=false;
+S.lb={yt:'',a:'',b:'',lg:null,err:''};S.libre=false;S.pi=0;S.hideTot=false;S.float=false;S.floatMin=false;S.floatPos=null;
 
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sum=a=>a.reduce((x,y)=>x+(y||0),0);
@@ -323,12 +332,40 @@ function friendsCard(){const me=S.me.uid;const inc=(S.fr||[]).filter(f=>f.status
  ${out.length?`<div class="card"><b>Solicitudes enviadas</b>${out.map(f=>{const o=oth(f);return `<div class="frow"><span>${esc(o.u)}</span><button class="fbtn sent" onclick="rejectFriend('${f.id}')">Cancelar</button></div>`}).join('')}</div>`:''}
  <div class="card">${acc.length?acc.map(f=>{const o=oth(f);return `<div class="frow"><button class="linkbtn" onclick="openU('${esc(o.uid)}')">${av(o.u)} ${esc(o.u)}</button><button class="fbtn sent" onclick="rejectFriend('${f.id}')">Eliminar</button></div>`}).join(''):'<div class="mu">Todavía no tienes amigos. Busca usuarios y envíales una solicitud.</div>'}</div>`}
 
+function planHTML(){
+ if(S.float)return `<div class="card" style="text-align:center"><b>La planilla está flotando</b><div class="mu" style="margin:6px 0 12px">Puedes votar desde la planilla flotante mientras ves el video en otra ventana.</div><button class="btn s" onclick="closeFloat()">Regresar la planilla a la página</button></div>`;
+ return (S.ri>=S.rounds.length?summaryV():roundV());
+}
+function openFloat(){S.float=true;S.floatMin=false;R();window.scrollTo(0,0)}
+function closeFloat(){S.float=false;R()}
+function renderFloat(){
+ let fb=document.getElementById('floatbox');
+ if(!fb){fb=document.createElement('div');fb.id='floatbox';document.body.appendChild(fb)}
+ if(!(S.float&&S.v==='vote'&&S.bt)){fb.innerHTML='';return}
+ const l=curL(),[a1,a2]=accentOf(l);
+ const pos=S.floatPos;const st=pos?`left:${pos.x}px;top:${pos.y}px;right:auto;bottom:auto;`:'';
+ fb.innerHTML=`<div class="fp${S.floatMin?' min':''}" style="${st}--ac:${a1};--ac2:${a2}">
+  <div class="fp-h" id="fp-drag"><span class="fp-t">Planilla · ${esc(S.bt.a)} vs ${esc(S.bt.b)}</span>
+  <span class="fp-b"><button onclick="S.floatMin=!S.floatMin;R()" aria-label="Minimizar">${S.floatMin?'□':'–'}</button><button onclick="closeFloat()" aria-label="Regresar a la página">✕</button></span></div>
+  ${S.floatMin?'':`<div class="fp-c">${S.ri>=S.rounds.length?summaryV():roundV()}</div>`}
+ </div>`;
+ const h=document.getElementById('fp-drag');
+ if(h)h.addEventListener('pointerdown',ev=>{
+  if(ev.target.closest('button'))return;
+  ev.preventDefault();
+  const box=h.parentElement,r=box.getBoundingClientRect(),dx=ev.clientX-r.left,dy=ev.clientY-r.top;
+  const move=e=>{const x=Math.max(0,Math.min(innerWidth-r.width,e.clientX-dx)),y=Math.max(0,Math.min(innerHeight-44,e.clientY-dy));
+   box.style.left=x+'px';box.style.top=y+'px';box.style.right='auto';box.style.bottom='auto';S.floatPos={x,y}};
+  const up=()=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up)};
+  window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);
+ });
+}
 let VKEY=null;
 function R(){
  const vkey=(S.v==='vote'&&S.bt)?(S.bt.a+'|'+S.bt.b+'|'+(S.bt.y||'')+'|'+S.lg):null;
  const plan=document.getElementById('plan');
  if(vkey&&vkey===VKEY&&plan){
-  plan.innerHTML=(S.ri>=S.rounds.length?summaryV():roundV());
+  plan.innerHTML=planHTML();
  }else{
   document.getElementById('app').innerHTML=(VIEW[S.v]||homeV)();
   VKEY=vkey;
@@ -336,6 +373,7 @@ function R(){
  document.getElementById('top').innerHTML=topH();
  document.getElementById('nav').innerHTML=navH();
  document.getElementById('ov').innerHTML=(S.auth?authM():'')+(S.sheet?sheetH():'')+(S.fb?fbM():'')+(S.delAsk?delM():'');
+ renderFloat();
 }
 function topH(){return `<div class="brand">${APP_ICON}<b>VotaFMS</b></div><div class="sp"></div><button class="ib" onclick="openFb()" aria-label="Enviar comentarios">${ico('chat',18)}</button>${S.me?`<button class="avbtn" onclick="go('perfil')" aria-label="Mi perfil">${avU(S.me,'')}</button>`:`<button class="btn sm" onclick="openAuth('in')">Entrar</button>`}`}
 function navH(){const items=[['home','Ligas','home'],['cal','Calendario','cal'],['search','Buscar','search'],['perfil','Perfil','user']];return items.map(([k,t,ic])=>`<button class="${nk()===k?'on':''}" onclick="go('${k}')"><span class="ni">${ico(ic,20)}</span>${t}${k==='perfil'&&pendCount()?`<span class="nbadge">${pendCount()}</span>`:''}</button>`).join('')}
@@ -416,7 +454,7 @@ function voteV(){
  const media=b.y?`<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${b.y}" title="Video de la batalla" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div><a href="https://www.youtube.com/watch?v=${b.y}" target="_blank" rel="noopener" class="btn s" style="text-decoration:none;margin-bottom:14px">${ico('play',18)} Abrir en YouTube</a>`:`<div class="video"><div style="text-align:center">${ico('play',44)}<div class="mu" style="margin-top:8px">Video de la batalla</div></div></div>`;
  return `<div class="lgwrap" style="--ac:${ac1};--ac2:${ac2};--lc:${l.c}"><button class="back" onclick="go('${S.libre?'libre':'lg'}')">${ico('back',18)} ${S.libre?'Batalla libre':esc(l.n)}</button>
  <div class="card"><div class="match"><div class="pl">${av(b.a,'lg')}<span class="n" style="color:var(--ac)">${esc(b.a)}</span></div><span class="vs">VS</span><div class="pl">${av(b.b,'lg')}<span class="n" style="color:var(--b2)">${esc(b.b)}</span></div></div><div class="mu" style="text-align:center;margin-top:10px">${esc(b.j||'')}</div></div>
- ${media}<div id="plan">${done?summaryV():roundV()}</div></div>`;
+ ${S.float?'':`<button class="btn s" style="margin:0 0 12px" onclick="openFloat()">Sacar planilla flotante</button>`}${media}<div id="plan">${planHTML()}</div></div>`;
 }
 function roundV(){
  const st=stepsList(),i=curStep(),cur=st[i]||st[0],rd=S.rounds[S.ri],part=rd.p[S.pi],n=st.length;
