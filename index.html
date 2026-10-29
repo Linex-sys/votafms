@@ -296,21 +296,22 @@ const B={
 };
 
 const APP_ICON=`<svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="vg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF4D5E"/><stop offset="1" stop-color="#FF9A3D"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#vg)"/><rect x="24" y="10" width="16" height="28" rx="8" fill="#fff"/><path d="M16 30a16 16 0 0 0 32 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><line x1="32" y1="46" x2="32" y2="53" stroke="#fff" stroke-width="4" stroke-linecap="round"/><line x1="24" y1="53" x2="40" y2="53" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="49" cy="15" r="10" fill="#FFD23F"/><path d="M44.5 15l3 3 5.5-5.5" fill="none" stroke="#1a1200" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-const IC={home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>',cal:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',chat:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',back:'<path d="M15 18l-6-6 6-6"/>',play:'<circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/>',logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'};
+const IC={users:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20c.6-3.4 3.4-5.5 7-5.5s6.4 2.1 7 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 6.5M18.5 14.5c1.6.9 2.6 2.6 3 5"/>',home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>',cal:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',chat:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',back:'<path d="M15 18l-6-6 6-6"/>',play:'<circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/>',logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'};
 function ico(n,s=20){return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`}
 function logo(l,w){if(LOGO[l.i])return `<span style="display:inline-flex;flex:0 0 auto;background:#fff;border-radius:14px;padding:5px;box-shadow:0 6px 14px rgba(0,0,0,.28)"><img src="${LOGO[l.i]}" width="${w}" height="${Math.round(w*1.15)}" alt="${esc(l.n)}" style="display:block;object-fit:contain"></span>`;return `<div style="width:${w}px;height:${Math.round(w*1.15)}px;border-radius:12px;background:${l.c};display:flex;align-items:center;justify-content:center;color:${l.tx};font-weight:900">${l.t}</div>`}
 const av=(name,cls='')=>`<span class="av ${cls}">${esc(String(name||'?')[0].toUpperCase())}</span>`;
 function avU(u,cls=''){return u&&u.foto?`<img class="av ${cls}" src="${u.foto}" alt="">`:`<span class="av ${cls}">${esc(String((u&&u.u)||'?')[0].toUpperCase())}</span>`}
-const nk=()=>({libre:'home',home:'home',lg:'home',vote:'home',res:'home',cal:'cal',search:'search',user:'search',vd:S.vb==='perfil'?'perfil':'search',perfil:'perfil'})[S.v]||'home';
+const nk=()=>({libre:'home',home:'home',lg:'home',vote:'home',res:'home',cal:'cal',search:'search',user:'search',vd:S.vb==='perfil'?'perfil':'search',perfil:'perfil',comunidad:'comunidad'})[S.v]||'home';
 const accentOf=l=>l.i==='in'?['#CA8A04','#FACC15']:[l.c,l.c2];
 const jLabel=e=>{const m=e.n.match(/Jornada \d+/);return m?m[0]:e.n};
 function batOf(e,b){if(typeof b==='string'){const p=b.split(/ vs /i);return {a:(p[0]||'').trim(),b:(p[1]||'').trim(),sa:null,sb:null,j:e.n+' · '+e.d}}return {a:b.a,b:b.b,sa:b.sa,sb:b.sb,y:b.y||null,j:e.n+' · '+e.d}}
 function crow(x){const sc=x.sa!=null,left=sc&&x.sa>x.sb,right=sc&&x.sb>x.sa;return `<div class="crow"><span class="cn ${left?'cw':sc?'cl':''}">${esc(x.a)}</span><span class="cs">${sc?fmt(x.sa)+' – '+fmt(x.sb):'VS'}</span><span class="cn r ${right?'cw':sc?'cl':''}">${esc(x.b)}</span></div>`}
 
-function go(v){S.v=v;if(v==='lg')S.lgVotes=null;window.scrollTo(0,0);if(v==='perfil')S.myVotes=S.me?null:[];if(v==='search')S.users=null;if(v==='user'){S.uProf=null;S.uVotes=null}R();loadFor(v)}
+function go(v){S.v=v;if(v==='lg')S.lgVotes=null;if(v==='comunidad')S.comm5=null;window.scrollTo(0,0);if(v==='perfil')S.myVotes=S.me?null:[];if(v==='search')S.users=null;if(v==='user'){S.uProf=null;S.uVotes=null}R();loadFor(v)}
 async function loadFor(v){
  try{
   if(v==='perfil'&&S.me){S.myVotes=await B.votesOfUser(S.me.uid);await refreshFriends();R()}
+  else if(v==='comunidad'){const arr=await Promise.all(COMUN.map(id=>B.votesOfLeague(id)));S.comm5={};COMUN.forEach((id,i)=>S.comm5[id]=arr[i]);R()}
   else if(v==='lg'&&LINEUP[S.lg]){S.lgVotes=await B.votesOfLeague(S.lg);R()}
   else if(v==='search'){S.users=await B.listUsers();await refreshFriends();R()}
   else if(v==='user'){await refreshFriends();const p=await B.getUser(S.uid);S.uProf=p?pub(p):{u:'?',p:'',m:'',a:'',joined:''};const canSee=(S.me&&S.me.uid===S.uid)||isFriend(S.uid);S.uVotes=canSee?await B.votesOfUser(S.uid):[];R()}
@@ -417,7 +418,7 @@ function R(){
  renderFloat();
 }
 function topH(){return `<div class="brand">${APP_ICON}<b>VotaFMS</b></div><div class="sp"></div><button class="ib" onclick="openFb()" aria-label="Enviar comentarios">${ico('chat',18)}</button>${S.me?`<button class="avbtn" onclick="go('perfil')" aria-label="Mi perfil">${avU(S.me,'')}</button>`:`<button class="btn sm" onclick="openAuth('in')">Entrar</button>`}`}
-function navH(){const items=[['home','Ligas','home'],['cal','Calendario','cal'],['search','Buscar','search'],['perfil','Perfil','user']];return items.map(([k,t,ic])=>`<button class="${nk()===k?'on':''}" onclick="go('${k}')"><span class="ni">${ico(ic,20)}</span>${t}${k==='perfil'&&pendCount()?`<span class="nbadge">${pendCount()}</span>`:''}</button>`).join('')}
+function navH(){const items=[['home','Ligas','home'],['cal','Calendario','cal'],['search','Buscar','search'],['perfil','Perfil','user'],['comunidad','Comunidad','users']];return items.map(([k,t,ic])=>`<button class="${nk()===k?'on':''}" onclick="go('${k}')"><span class="ni">${ico(ic,20)}</span>${t}${k==='perfil'&&pendCount()?`<span class="nbadge">${pendCount()}</span>`:''}</button>`).join('')}
 
 function homeV(){
  const nx=CAL.filter(e=>e.k==='next');
@@ -442,6 +443,7 @@ function voteRes(v){
  if(fa!==fb)return {w:fa>fb?'a':'b',k:'r'};
  return {w:null,k:null};
 }
+const COMUN=['es','ar','mx','cl','co'];
 function standings(lg,votes){
  const names=LINEUP[lg]||[];const idx={};names.forEach(n=>idx[nrm(n)]=n);
  const T={};names.forEach(n=>T[n]={n,pts:0,w:0,l:0,ptb:0});
@@ -451,26 +453,37 @@ function standings(lg,votes){
   const A=idx[nrm(v.a)],B2=idx[nrm(v.b)];
   if(!A||!B2||A===B2)return;
   const sorted=[A,B2].sort();const k=sorted.join('|');
-  const g=G[k]||(G[k]={p:sorted[0],q:sorted[1],n:0,sp:0,sq:0,res:{}});
+  const g=G[k]||(G[k]={p:sorted[0],q:sorted[1],n:0,sp:0,sq:0,nAct:0,nr:0,rp:0,rq:0});
   const flip=A!==g.p;
-  const r=voteRes(v);
   const ta=flip?v.tb:v.ta, tb=flip?v.ta:v.tb;
   g.n++;g.sp+=ta;g.sq+=tb;
-  let key='tie';
-  if(r.w){const winName=r.w==='a'?A:B2;key=(winName===g.p?'p':'q')+'|'+r.k}
-  g.res[key]=(g.res[key]||0)+1;
+  if(v.fmt==='actual')g.nAct++;
+  if(v.sc&&v.sc[1]){const ra=sum(v.sc[1].a),rb=sum(v.sc[1].b);g.nr++;g.rp+=flip?rb:ra;g.rq+=flip?ra:rb}
  });
  Object.values(G).forEach(g=>{
-  T[g.p].ptb+=g.sp/g.n;T[g.q].ptb+=g.sq/g.n;
-  let best=null,bc=-1,tie=false;
-  Object.entries(g.res).forEach(([k,c])=>{if(c>bc){bc=c;best=k;tie=false}else if(c===bc){tie=true}});
-  if(!best||tie||best==='tie'){T[g.p].pts+=1;T[g.q].pts+=1;return}
-  const [who,kind]=best.split('|');
-  const win=who==='p'?g.p:g.q, lose=who==='p'?g.q:g.p;
+  const ap=g.sp/g.n,aq=g.sq/g.n,d=Math.abs(ap-aq);
+  T[g.p].ptb+=ap;T[g.q].ptb+=aq;
+  const thr=g.nAct*2>g.n?0:1;
+  let win=null,lose=null,kind=null;
+  if(d>0){win=ap>aq?g.p:g.q;lose=ap>aq?g.q:g.p;kind=(thr===0||d>=1)?'d':'r'}
+  else if(g.nr>0){const rp=g.rp/g.nr,rq=g.rq/g.nr;if(rp!==rq){win=rp>rq?g.p:g.q;lose=rp>rq?g.q:g.p;kind='r'}}
+  if(!win){T[g.p].pts+=1;T[g.q].pts+=1;return}
   T[win].w++;T[lose].l++;
   if(kind==='d'){T[win].pts+=3}else{T[win].pts+=2;T[lose].pts+=1}
  });
  return Object.values(T).sort((x,y)=>y.pts-x.pts||y.w-x.w||y.ptb-x.ptb||x.n.localeCompare(y.n));
+}
+function tablaHTML(rows){
+ return `<div class="card" style="padding:8px 6px;overflow-x:auto"><div class="stbl">
+ <div class="sth">Pos</div><div class="sth" style="text-align:left">Participante</div><div class="sth">Pts</div><div class="sth">G</div><div class="sth">P</div><div class="sth">PTB</div>
+ ${rows.map((r,i)=>`<div class="std${i<3?' top':''}">${i+1}</div><div class="std n">${esc(r.n)}</div><div class="std b">${r.pts}</div><div class="std">${r.w}</div><div class="std">${r.l}</div><div class="std">${fmt(Math.round(r.ptb*10)/10)}</div>`).join('')}
+ </div></div>`;
+}
+function comunidadV(){
+ const head=`<h1 class="pg">Comunidad</h1><div class="mu" style="margin:-8px 2px 14px">Promedio de todos los usuarios. Las batallas libres no cuentan.</div>`;
+ if(!S.comm5)return head+'<div class="card mu">Cargando tablas…</div>';
+ return head+COMUN.map(id=>{const l=L.find(x=>x.i===id);const votes=(S.comm5[id]||[]).filter(v=>!v.free);
+  return `<div class="sec"><span>${esc(l.n)}</span><span>${votes.length} votos</span></div>${votes.length?tablaHTML(standings(id,votes)):'<div class="card mu">Todavía no hay votaciones en esta liga.</div>'}`}).join('');
 }
 function standingsCard(l){
  if(!LINEUP[l.i])return '';
@@ -782,7 +795,7 @@ async function deleteAccount(){
  }catch(e){S.delBusy=false;S.delAsk=false;S.msgP='No se pudo borrar la cuenta. Cierra sesión, vuelve a entrar e intenta de nuevo.';R()}
 }
 
-const VIEW={libre:libreV,home:homeV,lg:lgv,vote:voteV,res:resV,cal:calV,search:searchV,user:userV,vd:vdV,perfil:perfilV};
+const VIEW={comunidad:comunidadV,libre:libreV,home:homeV,lg:lgv,vote:voteV,res:resV,cal:calV,search:searchV,user:userV,vd:vdV,perfil:perfilV};
 async function init(){
  const q=new URLSearchParams(location.search);
  if(q.get('panel')==='1'){document.body.classList.add('panel');S.lg=q.get('l')||'es';start({a:q.get('a')||'MC 1',b:q.get('b')||'MC 2',j:'Planilla',y:q.get('y')||null,libre:q.get('libre')==='1'})}
