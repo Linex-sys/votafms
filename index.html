@@ -150,6 +150,11 @@ button.card{width:100%;text-align:left;color:var(--tx);font:inherit;cursor:point
 .pl-lab{font-weight:900;letter-spacing:2px;font-size:12px;color:var(--mu);text-align:center}
 .pl-tot{font-size:30px;font-weight:900;text-align:center;display:flex;flex-direction:column;align-items:center;line-height:1}
 .pl-tot small{font-size:11px;font-weight:800;color:var(--mu);margin-top:6px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fbtn{border:0;border-radius:999px;padding:7px 12px;font-weight:800;font-size:12px;cursor:pointer;background:var(--ac);color:#fff;white-space:nowrap;font-family:inherit}
+.fbtn.sent{background:var(--cd2);color:var(--tx);border:1px solid var(--bd)}
+.frow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-top:1px dashed var(--bd)}
+.frow:first-of-type{border-top:0}
+.linkbtn{border:0;background:none;color:var(--tx);font-weight:800;display:inline-flex;align-items:center;gap:8px;cursor:pointer;padding:0;font-family:inherit;font-size:15px}
 .gbadge{width:40px;height:40px;border-radius:12px;background:#fff;color:#4285F4;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;flex:0 0 auto;box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:7;display:flex;justify-content:space-around;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(10,15,30,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--bd)}
 .nav button{flex:1;max-width:120px;border:0;background:none;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:4px;cursor:pointer}
@@ -240,6 +245,10 @@ const B={
  async addVote(v){const fm=FB.fm;await fm.addDoc(fm.collection(FB.db,'votes'),v)},
  async updateVote(id,v){const fm=FB.fm;await fm.updateDoc(fm.doc(FB.db,'votes',id),v)},
  async deleteVote(id){const fm=FB.fm;await fm.deleteDoc(fm.doc(FB.db,'votes',id))},
+ async listFriendDocs(uid){const fm=FB.fm;const [a,b]=await Promise.all([fm.getDocs(fm.query(fm.collection(FB.db,'friends'),fm.where('from','==',uid))),fm.getDocs(fm.query(fm.collection(FB.db,'friends'),fm.where('to','==',uid)))]);const out=[];a.docs.concat(b.docs).forEach(d=>{if(!out.find(x=>x.id===d.id))out.push({id:d.id,...d.data()})});return out},
+ async sendFriend(me,meName,to,toName){const fm=FB.fm;await fm.setDoc(fm.doc(FB.db,'friends',me+'_'+to),{from:me,to,status:'pending',fromName:meName,toName,ts:Date.now()})},
+ async acceptFriend(id){const fm=FB.fm;await fm.updateDoc(fm.doc(FB.db,'friends',id),{status:'accepted'})},
+ async removeFriend(id){const fm=FB.fm;await fm.deleteDoc(fm.doc(FB.db,'friends',id))},
  async votesOfUser(uid){const fm=FB.fm;const s=await fm.getDocs(fm.query(fm.collection(FB.db,'votes'),fm.where('uid','==',uid),fm.limit(500)));return s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.ts-a.ts)},
  async votesKey(key){const fm=FB.fm;const s=await fm.getDocs(fm.query(fm.collection(FB.db,'votes'),fm.where('key','==',key),fm.limit(1000)));return s.docs.map(d=>d.data())},
  async addComment(c){const fm=FB.fm;await fm.addDoc(fm.collection(FB.db,'comments'),c)}
@@ -261,10 +270,36 @@ function go(v){S.v=v;window.scrollTo(0,0);if(v==='perfil')S.myVotes=S.me?null:[]
 async function loadFor(v){
  try{
   if(v==='perfil'&&S.me){S.myVotes=await B.votesOfUser(S.me.uid);R()}
-  else if(v==='search'){S.users=await B.listUsers();R()}
-  else if(v==='user'){const [p,vs]=await Promise.all([B.getUser(S.uid),B.votesOfUser(S.uid)]);S.uProf=p?pub(p):{u:'?',p:'',m:'',a:'',joined:''};S.uVotes=vs;R()}
+  else if(v==='search'){S.users=await B.listUsers();await refreshFriends();R()}
+  else if(v==='user'){await refreshFriends();const p=await B.getUser(S.uid);S.uProf=p?pub(p):{u:'?',p:'',m:'',a:'',joined:''};const canSee=(S.me&&S.me.uid===S.uid)||isFriend(S.uid);S.uVotes=canSee?await B.votesOfUser(S.uid):[];R()}
  }catch(e){if(v==='perfil')S.myVotes=[];if(v==='search')S.users=[];if(v==='user'){S.uVotes=[];S.uProf=S.uProf||{u:'?',p:'',m:'',a:'',joined:''}}R()}
 }
+S.fr=[];
+function friendOf(uid){return (S.fr||[]).find(x=>x.from===uid||x.to===uid)||null}
+function isFriend(uid){const f=friendOf(uid);return !!(f&&f.status==='accepted')}
+async function refreshFriends(){if(!S.me)return;try{S.fr=await B.listFriendDocs(S.me.uid)}catch(e){}}
+async function friendAct(uid,name){
+ if(!S.me)return openAuth('in');
+ const f=friendOf(uid);
+ try{
+  if(!f){await B.sendFriend(S.me.uid,S.me.u,uid,name);S.msgP='Solicitud enviada a '+name}
+  else if(f.status==='pending'&&f.to===S.me.uid){await B.acceptFriend(f.id);S.msgP='Ahora son amigos'}
+  else return;
+  await refreshFriends();
+ }catch(e){S.msgP='No se pudo completar la acción. Revisa las reglas de Firestore.'}
+ R();
+}
+async function rejectFriend(id){
+ try{await B.removeFriend(id);await refreshFriends();S.msgP='Listo'}catch(e){S.msgP='No se pudo completar la acción.'}
+ R();
+}
+function friendsCard(){const me=S.me.uid;const inc=(S.fr||[]).filter(f=>f.status==='pending'&&f.to===me);const out=(S.fr||[]).filter(f=>f.status==='pending'&&f.from===me);const acc=(S.fr||[]).filter(f=>f.status==='accepted');
+ const oth=f=>f.from===me?{uid:f.to,u:f.toName}:{uid:f.from,u:f.fromName};
+ return `<div class="sec"><span>Amigos</span><span>${acc.length}</span></div>
+ ${inc.length?`<div class="card"><b>Solicitudes recibidas</b>${inc.map(f=>{const o=oth(f);return `<div class="frow"><span>${esc(o.u)}</span><span style="display:flex;gap:6px"><button class="fbtn" onclick="friendAct('${esc(o.uid)}','${esc(o.u)}')">Aceptar</button><button class="fbtn sent" onclick="rejectFriend('${f.id}')">Rechazar</button></span></div>`}).join('')}</div>`:''}
+ ${out.length?`<div class="card"><b>Solicitudes enviadas</b>${out.map(f=>{const o=oth(f);return `<div class="frow"><span>${esc(o.u)}</span><button class="fbtn sent" onclick="rejectFriend('${f.id}')">Cancelar</button></div>`}).join('')}</div>`:''}
+ <div class="card">${acc.length?acc.map(f=>{const o=oth(f);return `<div class="frow"><button class="linkbtn" onclick="openU('${esc(o.uid)}')">${av(o.u)} ${esc(o.u)}</button><button class="fbtn sent" onclick="rejectFriend('${f.id}')">Eliminar</button></div>`}).join(''):'<div class="mu">Todavía no tienes amigos. Busca usuarios y envíales una solicitud.</div>'}</div>`}
+
 let VKEY=null;
 function R(){
  const vkey=(S.v==='vote'&&S.bt)?(S.bt.a+'|'+S.bt.b+'|'+(S.bt.y||'')+'|'+S.lg):null;
@@ -408,7 +443,10 @@ function calV(){return `<h1 class="pg">Calendario</h1><div class="tl">${CAL.map(
 function searchV(){return `<h1 class="pg">Buscar usuarios</h1><input placeholder="Buscar por nombre de usuario" value="${esc(S.q)}" oninput="S.q=this.value;document.getElementById('ul').innerHTML=ulist()"><div id="ul">${S.users===null?'<div class="card mu">Cargando usuarios…</div>':ulist()}</div>`}
 function ulist(){const list=S.users||[],q=(S.q||'').trim().toLowerCase(),f=list.filter(x=>!q||x.u.toLowerCase().includes(q));
  if(!f.length)return `<div class="card mu">${list.length?'No encontramos ese usuario.':'Todavía no hay usuarios registrados. ¡Sé el primero!'}</div>`;
- return f.map(x=>`<button class="vrow" onclick="openU('${esc(x.uid)}')">${avU(x,'')}<div style="flex:1;min-width:0"><b>${esc(x.u)}</b><div class="mu" style="font-size:12px">Se unió: ${esc(x.joined||'—')}</div></div>${ico('back',18).replace('<svg','<svg style="transform:rotate(180deg);color:var(--mu)"')}</button>`).join('')}
+ return f.map(x=>{const fr=friendOf(x.uid);const mine=S.me&&S.me.uid===x.uid;
+  const st=(!S.me||mine)?'':!fr?'add':fr.status==='accepted'?'friend':fr.from===S.me.uid?'sent':'incoming';
+  const lab={add:'Añadir',sent:'Enviada',incoming:'Aceptar',friend:'Amigos'}[st]||'';
+  return `<div class="vrow" onclick="openU('${esc(x.uid)}')">${avU(x,'')}<div style="flex:1;min-width:0"><b>${esc(x.u)}</b><div class="mu" style="font-size:12px">Se unió: ${esc(x.joined||'—')}</div></div>${st?`<button class="fbtn ${st}" onclick="event.stopPropagation();friendAct('${esc(x.uid)}','${esc(x.u)}')">${lab}</button>`:''}</div>`}).join('')}
 function openU(uid){S.uid=uid;go('user')}
 function profileHead(u,isMe){return `<div class="banner" style="--c:#FF4D5E;--c2:#FF9A3D">${avU(u,'lg')}<div style="flex:1;min-width:0"><span class="kicker">${isMe?'Tu perfil':'Usuario'}</span><h1>${esc(u.u)}</h1><p>${esc(u.p||'Sin país')} · ${u.m?'MC favorito: '+esc(u.m):'Sin MC favorito'}</p></div></div>${u.a?`<div class="card"><div class="mu" style="margin-bottom:4px">Sobre mí</div>${esc(u.a)}</div>`:''}<div class="mu" style="margin:-4px 2px 14px">Se unió: ${esc(u.joined||'—')}</div>`}
 function statsCard(votes){const n=votes.length,by=L.map(l=>({l,c:votes.filter(v=>v.l===l.i).length})).filter(o=>o.c),C=2*Math.PI*44;let off=0;
@@ -418,7 +456,13 @@ function voteList(list,from){if(list===null)return '<div class="card mu">Cargand
  return list.length?list.map((v,i)=>{const l=L.find(x=>x.i===v.l);return `<button class="vrow" onclick="viewVote(${i},'${from}')">${l?logo(l,34):''}<div style="flex:1;min-width:0"><span class="pill ${v.free?'':'next'}">${v.free?'Batalla libre':'Batalla de liga'}</span><b style="display:block;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.a)} vs ${esc(v.b)}</b><div class="mu" style="font-size:12px">${esc(l?l.n:'')} · ${esc(v.date||'')}</div></div><b>${fmt(v.ta)} – ${fmt(v.tb)}</b></button>`}).join(''):'<div class="card mu">Sin votos todavía.</div>'}
 function viewVote(i,from){S.viewList=from==='perfil'?(S.myVotes||[]):(S.uVotes||[]);S.vi=i;S.vb=from;go('vd')}
 function userV(){if(!S.uProf)return `<button class="back" onclick="go('search')">${ico('back',18)} Buscar</button><div class="card mu">Cargando perfil…</div>`;
- return `<button class="back" onclick="go('search')">${ico('back',18)} Buscar</button>${profileHead(S.uProf,false)}${statsCard(S.uVotes||[])}<div class="sec"><span>Votos</span><span>${(S.uVotes||[]).length}</span></div>${voteList(S.uVotes,'user')}`}
+ const mine=S.me&&S.me.uid===S.uid;const fr=friendOf(S.uid);
+ const st=mine?'self':!S.me?'none':!fr?'none':fr.status==='accepted'?'friend':fr.from===S.me.uid?'sent':'incoming';
+ const canSee=mine||st==='friend';
+ const nm=esc(S.uProf.u);
+ const btn=(!S.me||mine)?'':st==='friend'?'<span class="pill next">Son amigos</span>':st==='sent'?`<button class="btn s" onclick="rejectFriend('${fr.id}')">Solicitud enviada · Cancelar</button>`:st==='incoming'?`<button class="btn" onclick="friendAct('${S.uid}','${nm}')">Aceptar solicitud de amistad</button>`:`<button class="btn" onclick="friendAct('${S.uid}','${nm}')">Enviar solicitud de amistad</button>`;
+ const body=canSee?`${statsCard(S.uVotes||[])}<div class="sec"><span>Historial de batallas</span><span>${(S.uVotes||[]).length}</span></div>${voteList(S.uVotes,'user')}`:`<div class="card" style="text-align:center"><b>Historial privado</b><div class="mu" style="margin-top:6px">Solo los amigos pueden ver las batallas votadas de este usuario. Envíale una solicitud y, cuando la acepte, podrás verlo.</div></div>`;
+ return `<button class="back" onclick="go('search')">${ico('back',18)} Buscar</button>${profileHead(S.uProf,false)}${btn?`<div style="margin:-6px 0 14px">${btn}</div>`:''}${body}`}
 function vdV(){const v=S.viewList[S.vi];if(!v)return searchV();const a=v.ta,b=v.tb,w=a===b?'Empate':`Ganador: ${a>b?v.a:v.b} por ${fmt(Math.abs(a-b))} puntos`,l=L.find(x=>x.i===v.l);
  return `<button class="back" onclick="go('${S.vb==='perfil'?'perfil':'user'}')">${ico('back',18)} Volver</button><div class="banner" style="--c:${l.c};--c2:${l.c2}">${logo(l,56)}<div style="flex:1;min-width:0"><span class="kicker">Voto de ${esc(v.u||'')}</span><h1 style="font-size:19px">${esc(v.a)} vs ${esc(v.b)}</h1><p>${esc(l.n)} · ${esc(v.date||'')}</p></div></div><div class="win">${w}</div><div class="card"><div class="tbl"><span></span><span class="h" style="color:var(--ac)">${esc(v.a)}</span><span class="h" style="color:var(--b2)">${esc(v.b)}</span>${v.rows.map(r=>`<span class="n">${esc(r.r)}</span><span class="c">${fmt(r.ta)}</span><span class="c">${fmt(r.tb)}</span>`).join('')}<b>Total</b><span class="c">${fmt(a)}</span><span class="c">${fmt(b)}</span></div></div>${S.vb==='perfil'?`<div class="row" style="gap:8px;margin-top:6px"><button class="btn" style="margin:0" onclick="editMine()">Editar voto</button><button class="btn s" style="margin:0" onclick="deleteMine()">Borrar voto</button></div>`:'<div class="mu" style="text-align:center">Solo lectura: este voto no se puede modificar.</div>'}`}
 
@@ -432,7 +476,7 @@ function perfilV(){
  <label class="f">MC favorito</label><input id="pf-m" value="${esc(m.m||'')}">
  <label class="f">Sobre mí</label><textarea id="pf-a" rows="3">${esc(m.a||'')}</textarea>
  <button class="btn sm" style="width:100%;justify-content:center" onclick="saveProf()">Guardar cambios</button></div>
- ${statsCard(S.myVotes||[])}<div class="sec"><span>Mis votos</span><span>${S.myVotes?S.myVotes.length:'…'}</span></div>${voteList(S.myVotes,'perfil')}
+ ${friendsCard()}${statsCard(S.myVotes||[])}<div class="sec"><span>Mis votos</span><span>${S.myVotes?S.myVotes.length:'…'}</span></div>${voteList(S.myVotes,'perfil')}
  <button class="btn s" onclick="logout()">${ico('logout',18)} Cerrar sesión</button>`}
 async function saveProf(){const m=S.me;if(!m)return;const prof={p:document.getElementById('pf-p').value.trim(),m:document.getElementById('pf-m').value.trim(),a:document.getElementById('pf-a').value.trim()};
  try{await B.updateUser(m.uid,prof);S.me={...S.me,...prof};S.msgP='Cambios guardados'}catch(e){S.msgP='No se pudieron guardar los cambios.'}R()}
@@ -536,7 +580,7 @@ function lbStart(){const B2=S.lb;const a=B2.a.trim(),b=B2.b.trim();
  B2.err='';S.lg=B2.lg;start({a,b,j:'Batalla libre',y,libre:true})}
 
 function myVoteOf(lg,x){const key=lg+'|'+x.a+'|'+x.b;return (S.myVotes||[]).find(v=>!v.free&&v.key===key)||null}
-async function refreshMine(){if(!S.me)return;try{S.myVotes=await B.votesOfUser(S.me.uid);R()}catch(e){}}
+async function refreshMine(){if(!S.me)return;try{S.myVotes=await B.votesOfUser(S.me.uid);await refreshFriends();R()}catch(e){}}
 function startEdit(v){
  if(!v.sc){S.msgP='Esta votación es antigua y no se puede editar. Bórrala y vótala otra vez.';S.v='perfil';return R()}
  const l=L.find(x=>x.i===v.l)||L[0];
