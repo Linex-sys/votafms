@@ -310,6 +310,11 @@ const B={
  async setLink(id,y){const fm=FB.fm;await fm.setDoc(fm.doc(FB.db,'videos',id),{y,ts:Date.now()})},
   async votesOfLeague(l){const fm=FB.fm;const s=await fm.getDocs(fm.query(fm.collection(FB.db,'votes'),fm.where('l','==',l),fm.limit(2000)));return s.docs.map(d=>d.data())},
  async changeUsername(uid,oldU,newU){const fm=FB.fm;const ex=await fm.getDoc(fm.doc(FB.db,'usernames',newU));if(ex.exists())throw new Error('taken');await fm.setDoc(fm.doc(FB.db,'usernames',newU),{uid});await fm.updateDoc(fm.doc(FB.db,'users',uid),{u:newU,unAt:Date.now()});await fm.deleteDoc(fm.doc(FB.db,'usernames',oldU))},
+  async getNotifs(uid){const fm=FB.fm;const q=await fm.getDocs(fm.query(fm.collection(FB.db,'notifs'),fm.where('to','==',uid),fm.limit(100)));return q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.ts-a.ts)},
+ async delNotif(id){const fm=FB.fm;await fm.deleteDoc(fm.doc(FB.db,'notifs',id))},
+ async readNotif(id){const fm=FB.fm;await fm.updateDoc(fm.doc(FB.db,'notifs',id),{read:true})},
+ async addNotif(c){const fm=FB.fm;await fm.addDoc(fm.collection(FB.db,'notifs'),c)},
+ async getAvisos(){const fm=FB.fm;const q=await fm.getDocs(fm.query(fm.collection(FB.db,'avisos'),fm.limit(50)));return q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.ts-a.ts)},
  async deleteUserDoc(uid,u){const fm=FB.fm;await fm.deleteDoc(fm.doc(FB.db,'users',uid));await fm.deleteDoc(fm.doc(FB.db,'usernames',u))},
  async listFriendDocs(uid){const fm=FB.fm;const [a,b]=await Promise.all([fm.getDocs(fm.query(fm.collection(FB.db,'friends'),fm.where('from','==',uid))),fm.getDocs(fm.query(fm.collection(FB.db,'friends'),fm.where('to','==',uid)))]);const out=[];a.docs.concat(b.docs).forEach(d=>{if(!out.find(x=>x.id===d.id))out.push({id:d.id,...d.data()})});return out},
  async sendFriend(me,meName,to,toName){const fm=FB.fm;await fm.setDoc(fm.doc(FB.db,'friends',me+'_'+to),{from:me,to,status:'pending',fromName:meName,toName,ts:Date.now()})},
@@ -321,7 +326,7 @@ const B={
 };
 
 const APP_ICON=`<svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="vg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EAB308"/><stop offset="1" stop-color="#FDE047"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#vg)"/><rect x="24" y="10" width="16" height="28" rx="8" fill="#fff"/><path d="M16 30a16 16 0 0 0 32 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><line x1="32" y1="46" x2="32" y2="53" stroke="#fff" stroke-width="4" stroke-linecap="round"/><line x1="24" y1="53" x2="40" y2="53" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="49" cy="15" r="10" fill="#FFD23F"/><path d="M44.5 15l3 3 5.5-5.5" fill="none" stroke="#1a1200" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-const IC={users:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20c.6-3.4 3.4-5.5 7-5.5s6.4 2.1 7 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 6.5M18.5 14.5c1.6.9 2.6 2.6 3 5"/>',home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>',cal:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',chat:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',back:'<path d="M15 18l-6-6 6-6"/>',play:'<circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/>',logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'};
+const IC={bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',users:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20c.6-3.4 3.4-5.5 7-5.5s6.4 2.1 7 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 6.5M18.5 14.5c1.6.9 2.6 2.6 3 5"/>',home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>',cal:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',chat:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',back:'<path d="M15 18l-6-6 6-6"/>',play:'<circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/>',logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'};
 function ico(n,s=20){return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`}
 function logo(l,w){if(LOGO[l.i])return `<span style="display:inline-flex;flex:0 0 auto;background:#fff;border-radius:14px;padding:5px;box-shadow:0 6px 14px rgba(0,0,0,.28)"><img src="${LOGO[l.i]}" width="${w}" height="${Math.round(w*1.15)}" alt="${esc(l.n)}" style="display:block;object-fit:contain"></span>`;return `<div style="width:${w}px;height:${Math.round(w*1.15)}px;border-radius:12px;background:${l.c};display:flex;align-items:center;justify-content:center;color:${l.tx};font-weight:900">${l.t}</div>`}
 const av=(name,cls='')=>`<span class="av ${cls}">${esc(String(name||'?')[0].toUpperCase())}</span>`;
@@ -441,10 +446,10 @@ function R(){
  }
  document.getElementById('top').innerHTML=topH();
  document.getElementById('nav').innerHTML=navH();
- document.getElementById('ov').innerHTML=(S.auth?authM():'')+(S.sheet?sheetH():'')+(S.fb?fbM():'')+(S.delAsk?delM():'')+(S.friendsOpen?friendsSheet():'')+(S.ranksOpen?ranksSheet():'');
+ document.getElementById('ov').innerHTML=(S.auth?authM():'')+(S.sheet?sheetH():'')+(S.fb?fbM():'')+(S.delAsk?delM():'')+(S.friendsOpen?friendsSheet():'')+(S.ranksOpen?ranksSheet():'')+(S.inboxOpen?inboxSheet():'');
  renderFloat();
 }
-function topH(){return `<div class="brand">${APP_ICON}<b>VotaFMS</b></div><div class="sp"></div>${S.me?`<button class="ib" onclick="openFriends()" aria-label="Amigos">${ico('users',18)}${pendCount()?`<span class="nbadge2">${pendCount()}</span>`:''}</button>`:''}<button class="ib" onclick="openFb()" aria-label="Enviar comentarios">${ico('chat',18)}</button>${S.me?`<button class="avbtn" onclick="go('perfil')" aria-label="Mi perfil">${avU(S.me,'')}</button>`:`<button class="btn sm" onclick="openAuth('in')">Entrar</button>`}`}
+function topH(){return `<div class="brand">${APP_ICON}<b>VotaFMS</b></div><div class="sp"></div>${S.me?`<button class="ib" onclick="openInbox()" aria-label="Bandeja de entrada">${ico('bell',18)}${S.unread?`<span class="nbadge2">${S.unread}</span>`:''}</button>`:''}${S.me?`<button class="ib" onclick="openFriends()" aria-label="Amigos">${ico('users',18)}${pendCount()?`<span class="nbadge2">${pendCount()}</span>`:''}</button>`:''}<button class="ib" onclick="openFb()" aria-label="Enviar comentarios">${ico('chat',18)}</button>${S.me?`<button class="avbtn" onclick="go('perfil')" aria-label="Mi perfil">${avU(S.me,'')}</button>`:`<button class="btn sm" onclick="openAuth('in')">Entrar</button>`}`}
 function navH(){const items=[['home','Ligas','home'],['cal','Calendario','cal'],['search','Buscar','search'],['perfil','Perfil','user'],['comunidad','Comunidad','users']];return items.map(([k,t,ic])=>`<button class="${nk()===k?'on':''}" onclick="go('${k}')"><span class="ni">${ico(ic,20)}</span>${t}</button>`).join('')}
 
 function homeV(){
@@ -674,7 +679,7 @@ async function pushVote(v){
  const cw=c.wa>=c.wb?0:1,uw=v.ta===v.tb?-1:(v.ta>v.tb?0:1);
  v.msg=uw<0?'Empate':c.n===0?'Primer voto de esta batalla':uw===cw?'Coincide con la mayoría':'Votaste distinto a la mayoría';
  try{const mine=await B.votesOfUser(S.me.uid);const ex=S.editId||((mine.find(x=>x.key===v.key)||{}).id);if(ex){await B.updateVote(ex,v)}else{await B.addVote(v)}}catch(e){S.msgP='No se pudo guardar tu voto. Revisa tu conexión y las reglas de Firestore.';R();return}
- S.last=v;S.editId=null;S.v='res';S.comm=null;refreshMine();R();window.scrollTo(0,0);
+ notifyFriends(v);S.last=v;S.editId=null;S.v='res';S.comm=null;refreshMine();R();window.scrollTo(0,0);
  try{S.comm=summ(await B.votesKey(v.key))}catch(e){S.comm={n:0,wa:0,wb:0,sa:0,sb:0}}
  R();
 }
@@ -829,7 +834,7 @@ function lbStart(){const B2=S.lb;const a=B2.a.trim(),b=B2.b.trim();
  B2.err='';S.lg=B2.lg;start({a,b,j:'Batalla libre',y,libre:true})}
 
 function myVoteOf(lg,x){const key=lg+'|'+x.a+'|'+x.b;return (S.myVotes||[]).find(v=>!v.free&&v.key===key)||null}
-async function refreshMine(){if(!S.me)return;try{S.myVotes=await B.votesOfUser(S.me.uid);await refreshFriends();R()}catch(e){}}
+async function refreshMine(){if(!S.me)return;try{S.myVotes=await B.votesOfUser(S.me.uid);await refreshFriends();await loadInbox();R()}catch(e){}}
 function startEdit(v){
  if(!v.sc){S.msgP='Esta votación es antigua y no se puede editar. Bórrala y vótala otra vez.';S.v='perfil';return R()}
  const l=L.find(x=>x.i===v.l)||L[0];
@@ -865,6 +870,25 @@ async function deleteAccount(){
  }catch(e){S.delBusy=false;S.delAsk=false;S.msgP='No se pudo borrar la cuenta. Cierra sesión, vuelve a entrar e intenta de nuevo.';R()}
 }
 
+const AVISOS=[
+ {ts:Date.parse('2026-10-30T12:00:00'),text:'Nueva bandeja de entrada: aquí verás las actualizaciones de la app y lo que votan tus amigos.'},
+ {ts:Date.parse('2026-10-30T09:00:00'),text:'Rangos nuevos: sube de Underground a Elite votando batallas de liga.'}
+];
+S.inbox={notifs:[],avisos:[]};S.unread=0;S.inboxOpen=false;
+async function loadInbox(){if(!S.me)return;try{const n=await B.getNotifs(S.me.uid);const a=AVISOS;S.inbox={notifs:n,avisos:a};const vis=S.me.avisosVistos||0;S.unread=n.filter(x=>!x.read).length+a.filter(x=>x.ts>vis).length}catch(e){}}
+async function notifyFriends(v){if(!S.me)return;const me=S.me;const lg=L.find(x=>x.i===v.l);const liga=v.free?'batalla libre':(lg?lg.n:'');
+ const acc=(S.fr||[]).filter(f=>f.status==='accepted');
+ for(const f of acc){const to=f.from===me.uid?f.to:f.from;try{await B.addNotif({to,from:me.uid,fromName:me.u,text:me.u+' votó '+v.a+' vs '+v.b+' · '+liga,ts:Date.now(),read:false})}catch(e){}}}
+async function openInbox(){S.inboxOpen=true;R();
+ try{const n=S.inbox.notifs||[];for(const x of n.filter(x=>!x.read)){await B.readNotif(x.id)}
+  const now=Date.now();await B.updateUser(S.me.uid,{avisosVistos:now});S.me={...S.me,avisosVistos:now};
+  if(n.length>=5){for(const x of n){await B.delNotif(x.id)}}
+  S.unread=0}catch(e){}
+ R();}
+function closeInbox(){S.inboxOpen=false;R()}
+function inboxSheet(){const n=S.inbox.notifs||[],a=S.inbox.avisos||[];
+ const items=[...a.map(x=>({ts:x.ts||0,t:'Actualización',txt:x.text||'',k:'av'})),...n.map(x=>({ts:x.ts||0,t:'Amigo',txt:x.text||'',k:'nt'}))].sort((p,q)=>q.ts-p.ts);
+ return `<div class="ov" onclick="closeInbox()"><div class="sh" onclick="event.stopPropagation()"><b style="font-size:19px">Bandeja de entrada</b><div class="mu" style="margin:4px 0 12px">Actualizaciones de la app y actividad de tus amigos.</div>${items.length?items.map(it=>`<div class="frow" style="align-items:flex-start"><div style="flex:1;min-width:0"><span class="pill ${it.k==='av'?'next':''}">${it.t}</span><div style="margin-top:6px;font-size:14px">${esc(it.txt)}</div><div class="mu" style="font-size:11px;margin-top:2px">${it.ts?new Date(it.ts).toLocaleString('es'):''}</div></div></div>`).join(''):'<div class="mu">No tienes notificaciones.</div>'}${n.length>=5?'<div class="mu" style="margin-top:10px">Al cerrar esta bandeja se vacía, porque llegaron 5 notificaciones.</div>':''}</div></div>`}
 function openFriends(){S.friendsOpen=true;S.frTab=S.frTab||'amigos';R()}
 function friendsSheet(){const me=S.me?S.me.uid:null;if(!me)return '';
  const tab=S.frTab||'amigos';
