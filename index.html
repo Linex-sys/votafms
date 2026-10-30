@@ -191,6 +191,8 @@ button.card{width:100%;text-align:left;color:var(--tx);font:inherit;cursor:point
 .arow .cell{height:50px;font-size:17px;border-radius:12px}
 .arow .tot{height:46px;font-size:17px;border-radius:12px}
 .atot{margin-top:8px;padding-top:10px;border-top:1px dashed color-mix(in srgb,var(--ac) 35%,transparent)}
+.fst{border:2px solid transparent;background:var(--cd2);border-radius:18px;padding:16px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--tx);font-weight:800;cursor:pointer;font-family:inherit}
+.fst.on{border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 25%,transparent)}
 .gbadge{width:40px;height:40px;border-radius:12px;background:#fff;color:#4285F4;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;flex:0 0 auto;box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:7;display:flex;justify-content:space-around;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(10,15,30,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--bd)}
 .nav button{flex:1;max-width:120px;border:0;background:none;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:4px;cursor:pointer}
@@ -327,7 +329,7 @@ async function loadFor(v){
  try{
   if(v==='perfil'&&S.me){S.myVotes=await B.votesOfUser(S.me.uid);await refreshFriends();R()}
   else if(v==='comunidad'){const arr=await Promise.all(COMUN.map(id=>B.votesOfLeague(id)));S.comm5={};COMUN.forEach((id,i)=>S.comm5[id]=arr[i]);R()}
-  else if(v==='lg'&&LINEUP[S.lg]){const mine=S.me?await B.votesOfUser(S.me.uid):[];const tv=S.season==='2017'?'2017':'2026';S.lgVotes=mine.filter(x=>x.l===S.lg&&(x.temp||'2026')===tv);if(S.season==='2017')S.links=await B.getLinks();R()}
+  else if(v==='lg'&&LINEUP[S.lg]){const mine=S.me?await B.votesOfUser(S.me.uid):[];const tv=curSeason(S.lg);S.lgVotes=mine.filter(x=>x.l===S.lg&&(x.temp||'2026')===tv);if(tv!=='2026')S.links=await B.getLinks();R()}
   else if(v==='search'){S.users=await B.listUsers();await refreshFriends();R()}
   else if(v==='user'){await refreshFriends();const p=await B.getUser(S.uid);S.uProf=p?pub(p):{u:'?',p:'',m:'',a:'',joined:''};const canSee=(S.me&&S.me.uid===S.uid)||isFriend(S.uid);S.uVotes=canSee?await B.votesOfUser(S.uid):[];R()}
  }catch(e){if(v==='perfil')S.myVotes=[];if(v==='search')S.users=[];if(v==='user'){S.uVotes=[];S.uProf=S.uProf||{u:'?',p:'',m:'',a:'',joined:''}}R()}
@@ -365,8 +367,7 @@ function startSeg(){const f=S.first||0;return `<div class="card" style="margin-b
 function setFirst(i){S.first=i;R()}
 function planHTML(){
  if(S.float)return `<div class="card" style="text-align:center"><b>La planilla está flotando</b><div class="mu" style="margin:6px 0 12px">Puedes votar desde la planilla flotante mientras ves el video en otra ventana.</div><button class="btn s" onclick="closeFloat()">Regresar la planilla a la página</button></div>`;
- const showStart=S.fmt!=='actual'&&S.ri<S.rounds.length;
- return (showStart?startSeg():'')+bodyV();
+ return bodyV();
 }
 function openFloat(){S.float=true;S.floatMin=false;R();window.scrollTo(0,0)}
 function closeFloat(){S.float=false;R()}
@@ -395,7 +396,7 @@ function renderFloat(){
 const ACT=[{k:'RANDOM',max:10},{k:'IDA',max:10},{k:'VUELTA',max:10},{k:'ACAPELLA',max:4},{k:'DELUXE',max:10}];
 const ACTR={n:'Planilla actual',act:1,p:[]};
 const REPA={n:'Réplica',rep:1,act:1,p:[]};
-function fmtRounds(f,l){if(f==='actual')return [ACTR];if(S.libre)return RF.libre.slice();if(S.temp==='2017')return RF.t17.slice();return RF[l.f].slice()}
+function fmtRounds(f,l){if(f==='actual')return [ACTR];if(S.libre)return RF.libre.slice();if(S.temp==='2017')return RF.t17.slice();if(S.temp==='2018')return RF.t18.slice();return RF[l.f].slice()}
 function szOf(rd){return rd.act?(rd.rep?1:ACT.length):sz(rd)}
 function bodyV(){if(S.fmt==='actual')return actualV();return S.ri>=S.rounds.length?summaryV():roundV()}
 function fmtSeg(){return `<div class="seg" style="margin-bottom:12px"><button class="${S.fmt!=='actual'?'on':''}" onclick="setFmt('antigua')">Planilla antigua</button><button class="${S.fmt==='actual'?'on':''}" onclick="setFmt('actual')">Planilla actual</button></div>`}
@@ -463,7 +464,7 @@ function voteRes(v){
 }
 const COMUN=['es','ar','mx','cl','co'];
 function standings(lg,votes,temp){
- const names=(temp==='2017'&&lg==='es')?LINEUP17:(LINEUP[lg]||[]);const idx={};names.forEach(n=>idx[nrm(n)]=n);
+ const names=seasonLineup(lg,temp);const idx={};names.forEach(n=>idx[nrm(n)]=n);
  const T={};names.forEach(n=>T[n]={n,pts:0,w:0,l:0,ptb:0});
  // Solo cuenta la primera votación de cada usuario en cada batalla
  const ordered=(votes||[]).filter(v=>!v.free).sort((x,y)=>(x.ts||0)-(y.ts||0));
@@ -514,7 +515,7 @@ function comunidadV(){
 }
 function standingsCard(l){
  if(!LINEUP[l.i])return '';
- const tv=S.season==='2017'?'2017':'2026';
+ const tv=curSeason(l.i);
  const head=`<div class="sec"><span>Mi tabla de la liga</span><span>${S.me?'solo tus votos':'inicia sesión'}</span></div>`;
  if(!S.lgVotes)return head+`<div class="card mu">Cargando tabla…</div>`;
  return head+tablaHTML(standings(l.i,S.lgVotes,tv),l);
@@ -530,35 +531,56 @@ function lgv(){
  return `<div class="lgwrap" style="--ac:${ac1};--ac2:${ac2};--lc:${l.c}">
  <button class="back" onclick="go('home')">${ico('back',18)} Ligas</button>
  <div class="banner" style="--c:${l.c};--c2:${l.c2}">${logo(l,70)}<div style="flex:1;min-width:0"><span class="kicker">${esc(cur.st)}</span><h1>${esc(l.n)}</h1><p>${cur.d?esc(cur.d):'Fecha por confirmar'}</p></div></div>
- ${S.lg==='es'?seasonSel():''}<div class="card"><b>Votar una batalla por link</b><div class="mu" style="margin:4px 0 12px">Pega el link de YouTube y escribe los dos MCs.</div>
+ ${SEASON_OPTS[S.lg]?seasonSel(S.lg):''}<div class="card"><b>Votar una batalla por link</b><div class="mu" style="margin:4px 0 12px">Pega el link de YouTube y escribe los dos MCs.</div>
  <label class="f">Link de YouTube</label><input placeholder="https://youtube.com/watch?v=..." value="${esc(S.yt)}" oninput="S.yt=this.value">
  <div class="row" style="gap:8px;align-items:flex-start"><div style="flex:1;min-width:0"><label class="f">MC 1</label><input placeholder="MC 1" value="${esc(S.na)}" oninput="S.na=this.value"></div><div style="flex:1;min-width:0"><label class="f">MC 2</label><input placeholder="MC 2" value="${esc(S.nb)}" oninput="S.nb=this.value"></div></div>
  ${S.err?`<div class="err">${esc(S.err)}</div>`:''}<button class="btn" onclick="ytGo()">Votar esta batalla</button></div>
- ${standingsCard(l)}${S.lg==='es'&&S.season==='2017'?t17V():ents.length?groups:'<div class="card mu" style="text-align:center">Aún no hay batallas cargadas para esta liga.</div>'}</div>`;
+ ${standingsCard(l)}${curSeason(S.lg)!=='2026'?jorV(S.lg,curSeason(S.lg)):ents.length?groups:'<div class="card mu" style="text-align:center">Aún no hay batallas cargadas para esta liga.</div>'}</div>`;
 }
 function link17Form(){return `<div class="card" style="margin-bottom:12px"><b>Añade el link para ver esta batalla</b><div class="mu" style="margin:4px 0 10px">Pega el link de YouTube. Lo verá cualquiera que abra esta batalla.</div><input id="lk17" placeholder="https://youtube.com/watch?v=..."><button class="btn sm" style="width:100%" onclick="saveLink17()">Guardar link</button></div>`}
 async function saveLink17(){const v=(document.getElementById('lk17')||{}).value||'';const m=v.trim().match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/);
  if(!m){S.msgP='Ese link no parece de YouTube. Revisa el link.';return R()}
- try{const key='2017|'+S.bt.a+'|'+S.bt.b;await B.setLink(key,m[1]);S.links=S.links||{};S.links[key]=m[1];S.bt.y=m[1];S.msgP='Link guardado'}
+ try{const key=linkKey(S.lg,S.temp,S.bt.a,S.bt.b);await B.setLink(key,m[1]);S.links=S.links||{};S.links[key]=m[1];S.bt.y=m[1];S.msgP='Link guardado'}
  catch(e){S.msgP='No se pudo guardar el link. Revisa las reglas de Firestore.'}
  R();}
-function t17V(){return S17.map(j=>`<div class="sec"><span>Jornada ${j.n}</span><span>${esc(j.fecha)}</span></div>${j.ciudad?`<div class="mu" style="margin:-4px 2px 8px">${esc(j.ciudad)}</div>`:''}${j.b.map((b,bi)=>`<button class="bat" onclick="start17(${j.n-1},${bi})"><span class="side">${esc(b[0])}</span><span class="vs">${b[2]?'EXH':'VS'}</span><span class="side r">${esc(b[1])}</span></button><div style="height:8px"></div>`).join('')}`).join('')}
-function start17(ji,bi){const j=S17[ji],b=j.b[bi];start({a:b[0],b:b[1],j:'Temporada 2017 · Jornada '+j.n+(b[2]?' · Exhibición':''),y:(S.links||{})['2017|'+b[0]+'|'+b[1]]||null,temp:'2017'})}
-function seasonSel(){const is17=S.season==='2017';return `<div class="card" style="margin-top:12px"><b>Temporada</b><select style="margin-top:8px" onchange="S.season=this.value;VKEY=null;S.lgVotes=null;R();loadFor('lg')"><option value="2026" ${is17?'':'selected'}>Temporada 2026-2027</option><option value="2017" ${is17?'selected':''}>Temporada 2017</option></select></div>`}
+const LINEUP18es=['Hander','Zasko','Errecé','Arkano','Blon','BTA','Chuty','Force','Skone','Walls'];
+const LINEUP18ar=['Cacha','Stuart','Dtoke','Dani','Wos','MKS','Papo','Trueno','Replik','Klan'];
+const S18es=[{n:1,b:[['Hander','Zasko'],['Errecé','Arkano'],['Blon','BTA'],['Chuty','Force'],['Skone','Walls']]},{n:2,b:[['Walls','Arkano'],['Blon','Errecé'],['Chuty','Hander'],['Force','Zasko'],['Skone','BTA']]},{n:3,b:[['Arkano','BTA'],['Chuty','Zasko'],['Force','Hander'],['Skone','Errecé'],['Walls','Blon']]},{n:4,b:[['BTA','Walls'],['Blon','Hander'],['Errecé','Force'],['Arkano','Zasko'],['Chuty','Skone']]},{n:5,b:[['BTA','Errecé'],['Arkano','Hander'],['Walls','Force'],['Skone','Zasko'],['Chuty','Blon']]},{n:6,b:[['Walls','Hander'],['Force','Skone'],['Zasko','Errecé'],['Chuty','BTA'],['Arkano','Blon']]},{n:7,b:[['Hander','Errecé'],['Skone','Blon'],['Chuty','Walls'],['Arkano','Force'],['Zasko','BTA']]},{n:8,b:[['Arkano','Skone'],['Chuty','Errecé'],['BTA','Hander'],['Blon','Force'],['Zasko','Walls']]},{n:9,b:[['BTA','Force'],['Skone','Hander'],['Errecé','Walls'],['Zasko','Blon'],['Arkano','Chuty']]}].map(j=>({...j,fecha:'Fecha por confirmar',ciudad:''}));
+const S18ar=[{n:1,b:[['Cacha','Stuart'],['Dtoke','Dani'],['Wos','MKS'],['Papo','Trueno'],['Replik','Klan']]},{n:2,b:[['Trueno','Replik'],['Papo','Dani'],['Cacha','Klan'],['MKS','Stuart'],['Dtoke','Wos']]},{n:3,b:[['MKS','Dtoke'],['Klan','Papo'],['Trueno','Stuart'],['Cacha','Dani'],['Wos','Replik'],['Tuqu','Nacho',true]]},{n:4,b:[['Dani','Replik'],['Cacha','Dtoke'],['Papo','MKS'],['Stuart','Klan'],['Wos','Trueno']]},{n:5,b:[['Cacha','Papo'],['Dtoke','Trueno'],['Wos','Stuart'],['MKS','Replik'],['Dani','Klan']]},{n:6,b:[['Stuart','Replik'],['MKS','Dani'],['Klan','Trueno'],['Papo','Dtoke'],['Wos','Cacha']]},{n:7,b:[['Trueno','Cacha'],['Wos','Dani'],['Klan','MKS'],['Papo','Replik'],['Dtoke','Stuart']]},{n:8,b:[['Wos','Klan'],['Replik','Dtoke'],['Dani','Trueno'],['Papo','Stuart'],['MKS','Cacha'],['Stuart','Dozer',true]]},{n:9,b:[['Cacha','Replik'],['Dtoke','Klan'],['Trueno','MKS'],['Dani','Stuart'],['Wos','Papo']]}].map(j=>({...j,fecha:'Fecha por confirmar',ciudad:''}));
+RF.t18=[{n:'Easy',p:[{c:6}]},{n:'Hard',p:[{c:6,rv:1}]},{n:'Temáticas',p:[{t:'Primera Temática',c:4},{t:'Segunda Temática',c:4}]},{n:'Random',p:[{c:6}]},{n:'Minutos a sangre',p:[{t:'Minuto 1',c:6},{t:'Minuto 2',c:6}]},{n:'Deluxe',p:[{c:11}]}];
+const SEASON_OPTS={es:[['2017','Temporada 2017'],['2018','Temporada 2018-2019']],ar:[['2018','Temporada 2018-2019']]};
+const SEASON_JOR={'es|2017':S17,'es|2018':S18es,'ar|2018':S18ar};
+function seasonLineup(lg,temp){if(temp==='2017'&&lg==='es')return LINEUP17;if(temp==='2018')return lg==='es'?LINEUP18es:LINEUP18ar;return LINEUP[lg]||[]}
+function curSeason(lg){const x=S.season;return (SEASON_OPTS[lg]||[]).some(o=>o[0]===x)?x:'2026'}
+function linkKey(lg,temp,a,b){return (lg==='es'&&temp==='2017')?'2017|'+a+'|'+b:temp+'|'+lg+'|'+a+'|'+b}
+function jorV(lg,season){const J=SEASON_JOR[lg+'|'+season]||[];return J.map((j,ji)=>`<div class="sec"><span>Jornada ${j.n}</span><span>${esc(j.fecha)}</span></div>${j.ciudad?`<div class="mu" style="margin:-4px 2px 8px">${esc(j.ciudad)}</div>`:''}${j.b.map((b,bi)=>`<button class="bat" onclick="startSeasonBat('${lg}','${season}',${ji},${bi})"><span class="side">${esc(b[0])}</span><span class="vs">${b[2]?'EXH':'VS'}</span><span class="side r">${esc(b[1])}</span></button><div style="height:8px"></div>`).join('')}`).join('')}
+function startSeasonBat(lg,season,ji,bi){const J=SEASON_JOR[lg+'|'+season],j=J[ji],b=j.b[bi];S.lg=lg;S.season=season;
+ const tn=season==='2017'?'Temporada 2017':'Temporada 2018-2019';
+ start({a:b[0],b:b[1],j:L.find(x=>x.i===lg).n+' · '+tn+' · Jornada '+j.n+(b[2]?' · Exhibición':''),y:(S.links||{})[linkKey(lg,season,b[0],b[1])]||null,temp:season})}
+function seasonSel(lg){const cur=curSeason(lg);return `<div class="card" style="margin-bottom:12px"><b>Temporada</b><select style="margin-top:8px" onchange="S.season=this.value;VKEY=null;S.lgVotes=null;R();loadFor('lg')"><option value="2026" ${cur==='2026'?'selected':''}>Temporada 2026-2027</option>${SEASON_OPTS[lg].map(o=>`<option value="${o[0]}" ${cur===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div>`}
+function startScreenV(b,l){const f=S.first||0;const [a1,a2]=accentOf(l);
+ return `<div class="lgwrap" style="--ac:${a1};--ac2:${a2};--lc:${l.c}"><button class="back" onclick="go('${S.libre?'libre':'lg'}')">${ico('back',18)} ${S.libre?'Batalla libre':esc(l.n)}</button>
+ <div class="card" style="text-align:center;padding:22px 16px"><div class="mu">Antes de empezar</div><div style="font-size:21px;font-weight:900;margin:4px 0 16px">¿Quién empieza?</div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+  <button class="fst${f===0?' on':''}" onclick="setFirst(0)">${av(b.a,'lg')}<span>${esc(b.a)}</span></button>
+  <button class="fst${f===1?' on':''}" onclick="setFirst(1)">${av(b.b,'lg')}<span>${esc(b.b)}</span></button></div></div>
+ <button class="btn" onclick="confirmFirst()">Continuar</button></div>`;
+}
+function confirmFirst(){S.firstSet=true;R();window.scrollTo(0,0)}
 function startBat(ci,bi){const e=CAL[ci];const b=batOf(e,e.b[bi]);start({a:b.a,b:b.b,j:b.j,y:b.y||null})}
 function ytGo(){const m=(S.yt||'').match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/);if(!m){S.err='Ese link no parece de YouTube. Prueba con otro.';return R()}S.err='';start({a:S.na.trim()||'MC 1',b:S.nb.trim()||'MC 2',j:'Batalla por link',y:m[1]})}
-function start(b){const l=curL();S.bt=b;S.libre=!!b.libre;S.temp=b.temp||'2026';S.first=b.first||0;S.editId=null;const exK=(S.libre?'libre':S.lg)+'|'+b.a+'|'+b.b;const exV=(S.myVotes||[]).find(x=>x.key===exK&&x.sc);if(exV)return startEdit(exV);S.ri=0;S.pi=0;S.rep=null;S.rounds=fmtRounds(S.fmt||'antigua',l);S.sc=S.rounds.map(rd=>[Array(szOf(rd)).fill(null),Array(szOf(rd)).fill(null)]);S.v='vote';R();window.scrollTo(0,0)}
+function start(b){const l=curL();S.bt=b;S.libre=!!b.libre;S.temp=b.temp||'2026';S.first=b.first||0;S.firstSet=false;S.editId=null;const exK=(S.libre?'libre':S.lg)+'|'+b.a+'|'+b.b;const exV=(S.myVotes||[]).find(x=>x.key===exK&&x.sc);if(exV)return startEdit(exV);S.ri=0;S.pi=0;S.rep=null;S.rounds=fmtRounds(S.fmt||'antigua',l);S.sc=S.rounds.map(rd=>[Array(szOf(rd)).fill(null),Array(szOf(rd)).fill(null)]);S.v='vote';R();window.scrollTo(0,0)}
 function sumR(k,m){return sum(S.sc[k][m])}
 function tot(m){return S.rounds.reduce((a,_,k)=>a+sumR(k,m),0)}
 function mainTot(m){return S.rounds.reduce((a,rd,k)=>a+(rd.rep?0:sumR(k,m)),0)}
 function counted(m){return S.rep==='voted'?tot(m):mainTot(m)}
 
 function voteV(){
- const b=S.bt,l=curL(),done=S.ri>=S.rounds.length;const [ac1,ac2]=accentOf(l);
+ const b=S.bt,l=curL(),done=S.ri>=S.rounds.length;const [ac1,ac2]=accentOf(l);if(!S.firstSet)return startScreenV(b,l);
  const media=b.y?`<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${b.y}" title="Video de la batalla" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div><a href="https://www.youtube.com/watch?v=${b.y}" target="_blank" rel="noopener" class="btn s" style="text-decoration:none;margin-bottom:14px">${ico('play',18)} Abrir en YouTube</a>`:`<div class="video"><div style="text-align:center">${ico('play',44)}<div class="mu" style="margin-top:8px">Video de la batalla</div></div></div>`;
  return `<div class="lgwrap" style="--ac:${ac1};--ac2:${ac2};--lc:${l.c}"><button class="back" onclick="go('${S.libre?'libre':'lg'}')">${ico('back',18)} ${S.libre?'Batalla libre':esc(l.n)}</button>
  <div class="card"><div class="match"><div class="pl">${av(b.a,'lg')}<span class="n" style="color:var(--ac)">${esc(b.a)}</span></div><span class="vs">VS</span><div class="pl">${av(b.b,'lg')}<span class="n" style="color:var(--b2)">${esc(b.b)}</span></div></div><div class="mu" style="text-align:center;margin-top:10px">${esc(b.j||'')}</div></div>
- ${!b.y&&S.temp==='2017'?link17Form():''}${S.editId?'':fmtSeg()}${S.float?'':`<button class="btn s" style="margin:0 0 12px" onclick="openFloat()">Sacar planilla flotante</button>`}${media}<div id="plan">${planHTML()}</div></div>`;
+ ${!b.y&&(S.temp==='2017'||S.temp==='2018')?link17Form():''}${S.editId?'':fmtSeg()}${S.float?'':`<button class="btn s" style="margin:0 0 12px" onclick="openFloat()">Sacar planilla flotante</button>`}${media}<div id="plan">${planHTML()}</div></div>`;
 }
 function roundV(){
  const st=stepsList(),i=curStep(),cur=st[i]||st[0],rd=S.rounds[S.ri],part=rd.p[S.pi],n=st.length;
@@ -664,7 +686,7 @@ function statsCard(votes){const n=votes.length,by=L.map(l=>({l,c:votes.filter(v=
  const ring=by.map(o=>{const len=o.c/n*C,s=`<circle r="44" cx="60" cy="60" fill="none" stroke="${colr(o.l)}" stroke-width="14" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 60 60)"/>`;off+=len;return s}).join('');
  return `<div class="card"><div class="stats" style="margin-bottom:14px"><div class="stat"><big>${n}</big><span>Batallas votadas</span></div><div class="stat"><big>${by.length}</big><span>Ligas votadas</span></div></div>${n?`<div class="row"><svg width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="Votos por liga"><circle r="44" cx="60" cy="60" fill="none" stroke="var(--bd)" stroke-width="14"/>${ring}<text x="60" y="67" text-anchor="middle" font-size="22" font-weight="900" fill="var(--tx)">${n}</text></svg><div style="flex:1;min-width:0">${by.map(o=>`<div style="font-size:13px;margin:5px 0"><span style="color:${colr(o.l)};font-size:16px">●</span> ${esc(o.l.n)} <span class="mu">· ${o.c}</span></div>`).join('')}</div></div>`:'<div class="mu">Sin votos todavía.</div>'}</div>`}
 function voteList(list,from){if(list===null)return '<div class="card mu">Cargando votos…</div>';
- return list.length?list.map((v,i)=>{const l=L.find(x=>x.i===v.l);return `<button class="vrow" onclick="viewVote(${i},'${from}')">${l?logo(l,34):''}<div style="flex:1;min-width:0"><span class="pill ${v.free?'':'next'}">${v.free?'Batalla libre':'Batalla de liga'}${v.fmt==='actual'?' · Actual':''}${v.temp==='2017'?' · Temporada 2017':''}</span><b style="display:block;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.a)} vs ${esc(v.b)}</b><div class="mu" style="font-size:12px">${esc(l?l.n:'')} · ${esc(v.date||'')}</div></div><b>${fmt(v.ta)} – ${fmt(v.tb)}</b></button>`}).join(''):'<div class="card mu">Sin votos todavía.</div>'}
+ return list.length?list.map((v,i)=>{const l=L.find(x=>x.i===v.l);return `<button class="vrow" onclick="viewVote(${i},'${from}')">${l?logo(l,34):''}<div style="flex:1;min-width:0"><span class="pill ${v.free?'':'next'}">${v.free?'Batalla libre':'Batalla de liga'}${v.fmt==='actual'?' · Actual':''}${v.temp&&v.temp!=='2026'?' · Temporada '+(v.temp==='2017'?'2017':'2018-2019'):''}</span><b style="display:block;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.a)} vs ${esc(v.b)}</b><div class="mu" style="font-size:12px">${esc(l?l.n:'')} · ${esc(v.date||'')}</div></div><b>${fmt(v.ta)} – ${fmt(v.tb)}</b></button>`}).join(''):'<div class="card mu">Sin votos todavía.</div>'}
 function viewVote(i,from){S.viewList=from==='perfil'?(S.myVotes||[]):(S.uVotes||[]);S.vi=i;S.vb=from;go('vd')}
 function userV(){if(!S.uProf)return `<button class="back" onclick="go('search')">${ico('back',18)} Buscar</button><div class="card mu">Cargando perfil…</div>`;
  const mine=S.me&&S.me.uid===S.uid;const fr=friendOf(S.uid);
@@ -796,7 +818,7 @@ async function refreshMine(){if(!S.me)return;try{S.myVotes=await B.votesOfUser(S
 function startEdit(v){
  if(!v.sc){S.msgP='Esta votación es antigua y no se puede editar. Bórrala y vótala otra vez.';S.v='perfil';return R()}
  const l=L.find(x=>x.i===v.l)||L[0];
- S.lg=v.l;S.libre=!!v.free;S.temp=v.temp||'2026';S.first=v.first||0;
+ S.lg=v.l;S.libre=!!v.free;S.temp=v.temp||'2026';S.first=v.first||0;S.firstSet=true;
  S.bt={a:v.a,b:v.b,j:v.j||(v.free?'Batalla libre':l.n+' · '+v.date),y:v.y||null,libre:!!v.free};
  S.fmt=v.fmt==='actual'?'actual':'antigua';S.rounds=fmtRounds(S.fmt,l);if(v.rep==='voted')S.rounds.push(S.fmt==='actual'?REPA:REP);
  S.rep=v.rep==='voted'?'voted':(v.rep==='skipped'?'skipped':null);
