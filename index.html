@@ -200,6 +200,10 @@ img.av{object-fit:cover}
 .rtop{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 .rrow{display:flex;justify-content:space-between;padding:8px 10px;border-radius:12px;background:var(--bg2);border:1px solid var(--bd);margin-bottom:6px;font-size:14px;color:var(--mu)}
 .rrow.ok{color:var(--tx);border-color:rgba(250,204,21,.5)}
+.vscroll{max-height:430px;overflow-y:auto;padding-right:8px;scrollbar-width:thin;scrollbar-color:var(--ac) var(--cd2);-webkit-overflow-scrolling:touch}
+.vscroll::-webkit-scrollbar{width:6px}
+.vscroll::-webkit-scrollbar-track{background:var(--cd2);border-radius:999px}
+.vscroll::-webkit-scrollbar-thumb{background:var(--ac);border-radius:999px}
 .gbadge{width:40px;height:40px;border-radius:12px;background:#fff;color:#4285F4;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;flex:0 0 auto;box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:7;display:flex;justify-content:space-around;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(13,11,5,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--bd)}
 .nav button{flex:1;max-width:120px;border:0;background:none;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:4px;cursor:pointer}
@@ -706,7 +710,8 @@ function statsCard(votes){const n=votes.length,by=L.map(l=>({l,c:votes.filter(v=
  const ring=by.map(o=>{const len=o.c/n*C,s=`<circle r="44" cx="60" cy="60" fill="none" stroke="${colr(o.l)}" stroke-width="14" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 60 60)"/>`;off+=len;return s}).join('');
  return `<div class="card"><div class="stats" style="margin-bottom:14px"><div class="stat"><big>${n}</big><span>Batallas votadas</span></div><div class="stat"><big>${by.length}</big><span>Ligas votadas</span></div></div>${n?`<div class="row"><svg width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="Votos por liga"><circle r="44" cx="60" cy="60" fill="none" stroke="var(--bd)" stroke-width="14"/>${ring}<text x="60" y="67" text-anchor="middle" font-size="22" font-weight="900" fill="var(--tx)">${n}</text></svg><div style="flex:1;min-width:0">${by.map(o=>`<div style="font-size:13px;margin:5px 0"><span style="color:${colr(o.l)};font-size:16px">●</span> ${esc(o.l.n)} <span class="mu">· ${o.c}</span></div>`).join('')}</div></div>`:'<div class="mu">Sin votos todavía.</div>'}</div>`}
 function voteList(list,from){if(list===null)return '<div class="card mu">Cargando votos…</div>';
- return list.length?list.map((v,i)=>{const l=L.find(x=>x.i===v.l);return `<button class="vrow" onclick="viewVote(${i},'${from}')">${l?logo(l,34):''}<div style="flex:1;min-width:0"><span class="pill ${v.free?'':'next'}">${v.free?'Batalla libre':'Batalla de liga'}${v.fmt==='actual'?' · Actual':''}${' · Temporada '+(v.temp==='2017'?'2017':v.temp==='2018'?'2018':v.temp==='2019'?'2019':'2026')}</span><b style="display:block;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.a)} vs ${esc(v.b)}</b><div class="mu" style="font-size:12px">${esc(l?l.n:'')} · ${esc(v.date||'')}</div></div><b>${fmt(v.ta)} – ${fmt(v.tb)}</b></button>`}).join(''):'<div class="card mu">Sin votos todavía.</div>'}
+ const body=list.length?list.map((v,i)=>{const l=L.find(x=>x.i===v.l);return `<button class="vrow" onclick="viewVote(${i},'${from}')">${l?logo(l,34):''}<div style="flex:1;min-width:0"><span class="pill ${v.free?'':'next'}">${v.free?'Batalla libre':'Batalla de liga'}${v.fmt==='actual'?' · Actual':''}${' · Temporada '+(v.temp==='2017'?'2017':v.temp==='2018'?'2018':v.temp==='2019'?'2019':'2026')}</span><b style="display:block;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.a)} vs ${esc(v.b)}</b><div class="mu" style="font-size:12px">${esc(l?l.n:'')} · ${esc(v.date||'')}</div></div><b>${fmt(v.ta)} – ${fmt(v.tb)}</b></button>`}).join(''):'<div class="card mu">Sin votos todavía.</div>';
+ return list.length>5?`<div class="vscroll">${body}</div><div class="mu" style="text-align:center;font-size:12px;margin-top:6px">Desliza para ver los ${list.length-5} votos restantes</div>`:body}
 function viewVote(i,from){S.viewList=from==='perfil'?(S.myVotes||[]):(S.uVotes||[]);S.vi=i;S.vb=from;go('vd')}
 function userV(){if(!S.uProf)return `<button class="back" onclick="go('search')">${ico('back',18)} Buscar</button><div class="card mu">Cargando perfil…</div>`;
  const mine=S.me&&S.me.uid===S.uid;const fr=friendOf(S.uid);
@@ -871,6 +876,7 @@ async function deleteAccount(){
 }
 
 const AVISOS=[
+ {ts:Date.parse('2026-10-30T18:00:00'),text:'Tus votos ahora se ven en una lista deslizable: aparecen 5 a la vez y puedes deslizar para ver el resto.'},
  {ts:Date.parse('2026-10-30T12:00:00'),text:'Nueva bandeja de entrada: aquí verás las actualizaciones de la app y lo que votan tus amigos.'},
  {ts:Date.parse('2026-10-30T09:00:00'),text:'Rangos nuevos: sube de Underground a Elite votando batallas de liga.'}
 ];
