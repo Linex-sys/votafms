@@ -447,29 +447,35 @@ const COMUN=['es','ar','mx','cl','co'];
 function standings(lg,votes){
  const names=LINEUP[lg]||[];const idx={};names.forEach(n=>idx[nrm(n)]=n);
  const T={};names.forEach(n=>T[n]={n,pts:0,w:0,l:0,ptb:0});
+ // Solo cuenta la primera votación de cada usuario en cada batalla
+ const ordered=(votes||[]).filter(v=>!v.free).sort((x,y)=>(x.ts||0)-(y.ts||0));
+ const seen=new Set();const uniq=[];
+ ordered.forEach(v=>{const pk=[nrm(v.a),nrm(v.b)].sort().join('|');const k=(v.uid||'')+'#'+v.l+'#'+pk;if(seen.has(k))return;seen.add(k);uniq.push(v)});
  const G={};
- (votes||[]).forEach(v=>{
-  if(v.free)return;
-  const A=idx[nrm(v.a)],B2=idx[nrm(v.b)];
-  if(!A||!B2||A===B2)return;
-  const sorted=[A,B2].sort();const k=sorted.join('|');
-  const g=G[k]||(G[k]={p:sorted[0],q:sorted[1],n:0,sp:0,sq:0,nAct:0,nr:0,rp:0,rq:0});
-  const flip=A!==g.p;
+ uniq.forEach(v=>{
+  const na=nrm(v.a),nb=nrm(v.b);if(!na||!nb||na===nb)return;
+  const pk=[na,nb].sort();const k=pk.join('|');
+  const g=G[k]||(G[k]={p:pk[0],q:pk[1],n:0,sp:0,sq:0,nAct:0,nr:0,rp:0,rq:0});
+  const flip=na!==g.p;
   const ta=flip?v.tb:v.ta, tb=flip?v.ta:v.tb;
   g.n++;g.sp+=ta;g.sq+=tb;
   if(v.fmt==='actual')g.nAct++;
   if(v.sc&&v.sc[1]){const ra=sum(v.sc[1].a),rb=sum(v.sc[1].b);g.nr++;g.rp+=flip?rb:ra;g.rq+=flip?ra:rb}
  });
  Object.values(G).forEach(g=>{
+  const pIn=idx[g.p],qIn=idx[g.q];
+  if(!pIn&&!qIn)return;                 // dos invitados: no afecta la tabla
   const ap=g.sp/g.n,aq=g.sq/g.n,d=Math.abs(ap-aq);
-  T[g.p].ptb+=ap;T[g.q].ptb+=aq;
+  if(pIn)T[pIn].ptb+=ap;                // el PTB del lineup siempre suma, aunque el rival sea invitado
+  if(qIn)T[qIn].ptb+=aq;
   const thr=g.nAct*2>g.n?0:1;
-  let win=null,lose=null,kind=null;
-  if(d>0){win=ap>aq?g.p:g.q;lose=ap>aq?g.q:g.p;kind=(thr===0||d>=1)?'d':'r'}
-  else if(g.nr>0){const rp=g.rp/g.nr,rq=g.rq/g.nr;if(rp!==rq){win=rp>rq?g.p:g.q;lose=rp>rq?g.q:g.p;kind='r'}}
-  if(!win){T[g.p].pts+=1;T[g.q].pts+=1;return}
-  T[win].w++;T[lose].l++;
-  if(kind==='d'){T[win].pts+=3}else{T[win].pts+=2;T[lose].pts+=1}
+  let w=null,kind=null;
+  if(d>0){w=ap>aq?'p':'q';kind=(thr===0||d>=1)?'d':'r'}
+  else if(g.nr>0){const rp=g.rp/g.nr,rq=g.rq/g.nr;if(rp!==rq){w=rp>rq?'p':'q';kind='r'}}
+  if(!w){if(pIn)T[pIn].pts+=1;if(qIn)T[qIn].pts+=1;return}
+  const wIn=w==='p'?pIn:qIn, lIn=w==='p'?qIn:pIn;
+  if(wIn){T[wIn].w++;T[wIn].pts+=kind==='d'?3:2}
+  if(lIn){T[lIn].l++;T[lIn].pts+=kind==='d'?0:1}
  });
  return Object.values(T).sort((x,y)=>y.pts-x.pts||y.w-x.w||y.ptb-x.ptb||x.n.localeCompare(y.n));
 }
