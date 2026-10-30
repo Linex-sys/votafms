@@ -244,7 +244,7 @@ const S17=[
 {n:6,fecha:'25 de noviembre de 2017',ciudad:'Mallorca',b:[['Mr. Ego','Zasko'],['Errecé','Arkano'],['Chuty','Invert'],['BTA','Hander'],['Blon','Skone']]},
 {n:7,fecha:'9 de diciembre de 2017',ciudad:'Valencia',b:[['Errecé','Zasko'],['Invert','BTA'],['Hander','Blon'],['Arkano','Mr. Ego'],['Chuty','Skone']]},
 {n:8,fecha:'30 de diciembre de 2017',ciudad:'Madrid',b:[['Chuty','Blon'],['Hander','Mr. Ego'],['Zasko','Invert'],['Skone','Errecé'],['Arkano','BTA']]},
-{n:9,fecha:'Fecha por confirmar',ciudad:'',b:[['Blon','Arkano'],['Errecé','BTA'],['Chuty','Hander'],['Skone','Zasko'],['Invert','Mr. Ego']]}
+{n:9,fecha:'Fecha por confirmar',ciudad:'Murcia',b:[['Blon','Arkano'],['Errecé','BTA'],['Chuty','Hander'],['Skone','Zasko'],['Invert','Mr. Ego']]}
 ];
 const LINEUP17=['Chuty','Skone','Blon','BTA','Errecé','Zasko','Arkano','Hander','Invert','Mr. Ego'];
 RF.t17=[{n:'Easy',p:[{c:6}]},{n:'Hard',p:[{c:6,rv:1}]},{n:'Temáticas',p:[{t:'Primera Temática',c:4},{t:'Segunda Temática',c:4}]},{n:'Random',p:[{c:22}]},{n:'Minutos a sangre',p:[{t:'Minuto 1',c:6},{t:'Minuto 2',c:6}]},{n:'Deluxe',p:[{t:'Acapela y Deluxe',c:17}]}];
@@ -297,6 +297,8 @@ const B={
  async addVote(v){const fm=FB.fm;await fm.addDoc(fm.collection(FB.db,'votes'),v)},
  async updateVote(id,v){const fm=FB.fm;await fm.updateDoc(fm.doc(FB.db,'votes',id),v)},
  async deleteVote(id){const fm=FB.fm;await fm.deleteDoc(fm.doc(FB.db,'votes',id))},
+ async getLinks(){const fm=FB.fm;const q=await fm.getDocs(fm.collection(FB.db,'videos'));const o={};q.docs.forEach(d=>{o[d.id]=d.data().y});return o},
+ async setLink(id,y){const fm=FB.fm;await fm.setDoc(fm.doc(FB.db,'videos',id),{y,ts:Date.now()})},
   async votesOfLeague(l){const fm=FB.fm;const s=await fm.getDocs(fm.query(fm.collection(FB.db,'votes'),fm.where('l','==',l),fm.limit(2000)));return s.docs.map(d=>d.data())},
  async deleteUserDoc(uid,u){const fm=FB.fm;await fm.deleteDoc(fm.doc(FB.db,'users',uid));await fm.deleteDoc(fm.doc(FB.db,'usernames',u))},
  async listFriendDocs(uid){const fm=FB.fm;const [a,b]=await Promise.all([fm.getDocs(fm.query(fm.collection(FB.db,'friends'),fm.where('from','==',uid))),fm.getDocs(fm.query(fm.collection(FB.db,'friends'),fm.where('to','==',uid)))]);const out=[];a.docs.concat(b.docs).forEach(d=>{if(!out.find(x=>x.id===d.id))out.push({id:d.id,...d.data()})});return out},
@@ -325,7 +327,7 @@ async function loadFor(v){
  try{
   if(v==='perfil'&&S.me){S.myVotes=await B.votesOfUser(S.me.uid);await refreshFriends();R()}
   else if(v==='comunidad'){const arr=await Promise.all(COMUN.map(id=>B.votesOfLeague(id)));S.comm5={};COMUN.forEach((id,i)=>S.comm5[id]=arr[i]);R()}
-  else if(v==='lg'&&LINEUP[S.lg]){const mine=S.me?await B.votesOfUser(S.me.uid):[];const tv=S.season==='2017'?'2017':'2026';S.lgVotes=mine.filter(x=>x.l===S.lg&&(x.temp||'2026')===tv);R()}
+  else if(v==='lg'&&LINEUP[S.lg]){const mine=S.me?await B.votesOfUser(S.me.uid):[];const tv=S.season==='2017'?'2017':'2026';S.lgVotes=mine.filter(x=>x.l===S.lg&&(x.temp||'2026')===tv);if(S.season==='2017')S.links=await B.getLinks();R()}
   else if(v==='search'){S.users=await B.listUsers();await refreshFriends();R()}
   else if(v==='user'){await refreshFriends();const p=await B.getUser(S.uid);S.uProf=p?pub(p):{u:'?',p:'',m:'',a:'',joined:''};const canSee=(S.me&&S.me.uid===S.uid)||isFriend(S.uid);S.uVotes=canSee?await B.votesOfUser(S.uid):[];R()}
  }catch(e){if(v==='perfil')S.myVotes=[];if(v==='search')S.users=[];if(v==='user'){S.uVotes=[];S.uProf=S.uProf||{u:'?',p:'',m:'',a:'',joined:''}}R()}
@@ -525,15 +527,20 @@ function lgv(){
  return `<div class="lgwrap" style="--ac:${ac1};--ac2:${ac2};--lc:${l.c}">
  <button class="back" onclick="go('home')">${ico('back',18)} Ligas</button>
  <div class="banner" style="--c:${l.c};--c2:${l.c2}">${logo(l,70)}<div style="flex:1;min-width:0"><span class="kicker">${esc(cur.st)}</span><h1>${esc(l.n)}</h1><p>${cur.d?esc(cur.d):'Fecha por confirmar'}</p></div></div>
- <div class="card"><b>Votar una batalla por link</b><div class="mu" style="margin:4px 0 12px">Pega el link de YouTube y escribe los dos MCs.</div>
+ ${S.lg==='es'?seasonSel():''}<div class="card"><b>Votar una batalla por link</b><div class="mu" style="margin:4px 0 12px">Pega el link de YouTube y escribe los dos MCs.</div>
  <label class="f">Link de YouTube</label><input placeholder="https://youtube.com/watch?v=..." value="${esc(S.yt)}" oninput="S.yt=this.value">
  <div class="row" style="gap:8px;align-items:flex-start"><div style="flex:1;min-width:0"><label class="f">MC 1</label><input placeholder="MC 1" value="${esc(S.na)}" oninput="S.na=this.value"></div><div style="flex:1;min-width:0"><label class="f">MC 2</label><input placeholder="MC 2" value="${esc(S.nb)}" oninput="S.nb=this.value"></div></div>
  ${S.err?`<div class="err">${esc(S.err)}</div>`:''}<button class="btn" onclick="ytGo()">Votar esta batalla</button></div>
- ${standingsCard(l)}${S.lg==='es'&&S.season==='2017'?t17V():ents.length?groups:'<div class="card mu" style="text-align:center">Aún no hay batallas cargadas para esta liga.</div>'}
- ${S.lg==='es'?seasonSel():''}</div>`;
+ ${standingsCard(l)}${S.lg==='es'&&S.season==='2017'?t17V():ents.length?groups:'<div class="card mu" style="text-align:center">Aún no hay batallas cargadas para esta liga.</div>'}</div>`;
 }
+function link17Form(){return `<div class="card" style="margin-bottom:12px"><b>Añade el link para ver esta batalla</b><div class="mu" style="margin:4px 0 10px">Pega el link de YouTube. Lo verá cualquiera que abra esta batalla.</div><input id="lk17" placeholder="https://youtube.com/watch?v=..."><button class="btn sm" style="width:100%" onclick="saveLink17()">Guardar link</button></div>`}
+async function saveLink17(){const v=(document.getElementById('lk17')||{}).value||'';const m=v.trim().match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/);
+ if(!m){S.msgP='Ese link no parece de YouTube. Revisa el link.';return R()}
+ try{const key='2017|'+S.bt.a+'|'+S.bt.b;await B.setLink(key,m[1]);S.links=S.links||{};S.links[key]=m[1];S.bt.y=m[1];S.msgP='Link guardado'}
+ catch(e){S.msgP='No se pudo guardar el link. Revisa las reglas de Firestore.'}
+ R();}
 function t17V(){return S17.map(j=>`<div class="sec"><span>Jornada ${j.n}</span><span>${esc(j.fecha)}</span></div>${j.ciudad?`<div class="mu" style="margin:-4px 2px 8px">${esc(j.ciudad)}</div>`:''}${j.b.map((b,bi)=>`<button class="bat" onclick="start17(${j.n-1},${bi})"><span class="side">${esc(b[0])}</span><span class="vs">${b[2]?'EXH':'VS'}</span><span class="side r">${esc(b[1])}</span></button><div style="height:8px"></div>`).join('')}`).join('')}
-function start17(ji,bi){const j=S17[ji],b=j.b[bi];start({a:b[0],b:b[1],j:'Temporada 2017 · Jornada '+j.n+(b[2]?' · Exhibición':''),y:null,temp:'2017'})}
+function start17(ji,bi){const j=S17[ji],b=j.b[bi];start({a:b[0],b:b[1],j:'Temporada 2017 · Jornada '+j.n+(b[2]?' · Exhibición':''),y:(S.links||{})['2017|'+b[0]+'|'+b[1]]||null,temp:'2017'})}
 function seasonSel(){const is17=S.season==='2017';return `<div class="card" style="margin-top:12px"><b>Temporada</b><select style="margin-top:8px" onchange="S.season=this.value;VKEY=null;S.lgVotes=null;R();loadFor('lg')"><option value="2026" ${is17?'':'selected'}>Temporada 2026-2027</option><option value="2017" ${is17?'selected':''}>Temporada 2017</option></select></div>`}
 function startBat(ci,bi){const e=CAL[ci];const b=batOf(e,e.b[bi]);start({a:b.a,b:b.b,j:b.j,y:b.y||null})}
 function ytGo(){const m=(S.yt||'').match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/);if(!m){S.err='Ese link no parece de YouTube. Prueba con otro.';return R()}S.err='';start({a:S.na.trim()||'MC 1',b:S.nb.trim()||'MC 2',j:'Batalla por link',y:m[1]})}
@@ -548,7 +555,7 @@ function voteV(){
  const media=b.y?`<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${b.y}" title="Video de la batalla" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div><a href="https://www.youtube.com/watch?v=${b.y}" target="_blank" rel="noopener" class="btn s" style="text-decoration:none;margin-bottom:14px">${ico('play',18)} Abrir en YouTube</a>`:`<div class="video"><div style="text-align:center">${ico('play',44)}<div class="mu" style="margin-top:8px">Video de la batalla</div></div></div>`;
  return `<div class="lgwrap" style="--ac:${ac1};--ac2:${ac2};--lc:${l.c}"><button class="back" onclick="go('${S.libre?'libre':'lg'}')">${ico('back',18)} ${S.libre?'Batalla libre':esc(l.n)}</button>
  <div class="card"><div class="match"><div class="pl">${av(b.a,'lg')}<span class="n" style="color:var(--ac)">${esc(b.a)}</span></div><span class="vs">VS</span><div class="pl">${av(b.b,'lg')}<span class="n" style="color:var(--b2)">${esc(b.b)}</span></div></div><div class="mu" style="text-align:center;margin-top:10px">${esc(b.j||'')}</div></div>
- ${S.editId?'':fmtSeg()}${S.float?'':`<button class="btn s" style="margin:0 0 12px" onclick="openFloat()">Sacar planilla flotante</button>`}${media}<div id="plan">${planHTML()}</div></div>`;
+ ${!b.y&&S.temp==='2017'?link17Form():''}${S.editId?'':fmtSeg()}${S.float?'':`<button class="btn s" style="margin:0 0 12px" onclick="openFloat()">Sacar planilla flotante</button>`}${media}<div id="plan">${planHTML()}</div></div>`;
 }
 function roundV(){
  const st=stepsList(),i=curStep(),cur=st[i]||st[0],rd=S.rounds[S.ri],part=rd.p[S.pi],n=st.length;
