@@ -235,6 +235,18 @@ const RF={
 const LINEUP={"es": ["Ibán", "Gazir", "Arkano", "Sweet Pain", "Babi", "Bélico", "Navas", "Sara Socas", "Marithea", "El Menor"], "ar": ["Mecha", "Larrix", "Replik", "Exe", "Sophia", "Facu HDR", "Dybbuk", "Abel", "Rife", "Tobi"], "mx": ["Jony Beltrán", "Azuky", "Lobo Estepario", "Rapder", "Nota Roja", "Xhavez", "Chuty", "Kodigo", "Dalia Castella", "Skone"], "cl": ["Kaiser", "Nitro", "Teorema", "Stuart", "Fusok", "Drose", "Destello", "BTI", "Animus", "Metalingüística"], "co": ["Aczino", "Valles-T", "Éxodo Lirical", "Fat N", "Filósofo", "Pandora", "Reverse", "Dima", "Puppy", "Visionario"]};
 const HIDDEN_LIGAS=['ca','ws'];
 RF.libre=[{n:'Easy · Hard',p:[{t:'Easy Mode',c:6},{t:'Hard Mode',c:6,rv:1}]},{n:'Temáticas',p:[{t:'Primera Temática',c:4},{t:'Segunda Temática',c:4}]},{n:'Random',p:[{c:9}]},{n:'Minutos a sangre',p:[{t:'Minuto 1',c:6},{t:'Minuto 2',c:6}]},{n:'Acapela',p:[{t:'Acapela',c:1,max:4}]},{n:'Deluxe',p:[{c:12}]}];
+const S17=[
+{n:1,fecha:'1 de mayo de 2017',ciudad:'Barcelona',b:[['Blon','Mr. Ego'],['Arkano','Zasko'],['BTA','Skone'],['Chuty','Errecé'],['Hander','Invert']]},
+{n:2,fecha:'2 de mayo de 2017',ciudad:'Alicante',b:[['BTA','Chuty'],['Errecé','Mr. Ego'],['Arkano','Skone'],['Hander','Zasko'],['Blon','Invert']]},
+{n:3,fecha:'23 de junio de 2017',ciudad:'Málaga',b:[['Chuty','Arkano'],['BTA','Mr. Ego'],['Blon','Zasko'],['Invert','Errecé'],['Skone','Hander']]},
+{n:4,fecha:'28 de octubre de 2017',ciudad:'Granada',b:[['Skone','Mr. Ego'],['Arkano','Invert'],['Errecé','Hander'],['Chuty','Zasko'],['Blon','BTA']]},
+{n:5,fecha:'18 de noviembre de 2017',ciudad:'Bilbao',b:[['Hander','Arkano'],['Skone','Invert'],['Chuty','Mr. Ego'],['Blon','Errecé'],['Zasko','BTA'],['Walls','Force',true]]},
+{n:6,fecha:'25 de noviembre de 2017',ciudad:'Mallorca',b:[['Mr. Ego','Zasko'],['Errecé','Arkano'],['Chuty','Invert'],['BTA','Hander'],['Blon','Skone']]},
+{n:7,fecha:'9 de diciembre de 2017',ciudad:'Valencia',b:[['Errecé','Zasko'],['Invert','BTA'],['Hander','Blon'],['Arkano','Mr. Ego'],['Chuty','Skone']]},
+{n:8,fecha:'30 de diciembre de 2017',ciudad:'Madrid',b:[['Chuty','Blon'],['Hander','Mr. Ego'],['Zasko','Invert'],['Skone','Errecé'],['Arkano','BTA']]},
+{n:9,fecha:'Fecha por confirmar',ciudad:'',b:[['Blon','Arkano'],['Errecé','BTA'],['Chuty','Hander'],['Skone','Zasko'],['Invert','Mr. Ego']]}
+];
+RF.t17=[{n:'Easy',p:[{c:8}]},{n:'Hard',p:[{c:8,rv:1}]},{n:'Temáticas',p:[{t:'Primera Temática',c:8},{t:'Segunda Temática',c:8}]},{n:'Random',p:[{c:22}]},{n:'Minutos a sangre',p:[{t:'Minuto 1',c:6},{t:'Minuto 2',c:6}]},{n:'Deluxe',p:[{t:'Acapela y Deluxe',c:17}]}];
 const REP={n:'Réplica',rep:1,p:[{c:6}]};
 let S={v:'home',lg:null,bt:null,ri:0,sc:[],rounds:[],rep:null,yt:'',na:'',nb:'',err:'',q:'',uid:null,vi:0,vb:'perfil',viewList:[],sheet:null,auth:null,fb:false,fbs:false,fbt:'',fbe:'',kpe:'',pend:null,last:null,msgP:'',users:null,myVotes:null,uProf:null,uVotes:null,comm:null,me:null,authBusy:false};
 let FB=null;
@@ -312,7 +324,7 @@ async function loadFor(v){
  try{
   if(v==='perfil'&&S.me){S.myVotes=await B.votesOfUser(S.me.uid);await refreshFriends();R()}
   else if(v==='comunidad'){const arr=await Promise.all(COMUN.map(id=>B.votesOfLeague(id)));S.comm5={};COMUN.forEach((id,i)=>S.comm5[id]=arr[i]);R()}
-  else if(v==='lg'&&LINEUP[S.lg]){const mine=S.me?await B.votesOfUser(S.me.uid):[];S.lgVotes=mine.filter(x=>x.l===S.lg);R()}
+  else if(v==='lg'&&LINEUP[S.lg]){const mine=S.me?await B.votesOfUser(S.me.uid):[];S.lgVotes=mine.filter(x=>x.l===S.lg&&(x.temp||'2026')==='2026');R()}
   else if(v==='search'){S.users=await B.listUsers();await refreshFriends();R()}
   else if(v==='user'){await refreshFriends();const p=await B.getUser(S.uid);S.uProf=p?pub(p):{u:'?',p:'',m:'',a:'',joined:''};const canSee=(S.me&&S.me.uid===S.uid)||isFriend(S.uid);S.uVotes=canSee?await B.votesOfUser(S.uid):[];R()}
  }catch(e){if(v==='perfil')S.myVotes=[];if(v==='search')S.users=[];if(v==='user'){S.uVotes=[];S.uProf=S.uProf||{u:'?',p:'',m:'',a:'',joined:''}}R()}
@@ -377,7 +389,7 @@ function renderFloat(){
 const ACT=[{k:'RANDOM',max:10},{k:'IDA',max:10},{k:'VUELTA',max:10},{k:'ACAPELLA',max:4},{k:'DELUXE',max:10}];
 const ACTR={n:'Planilla actual',act:1,p:[]};
 const REPA={n:'Réplica',rep:1,act:1,p:[]};
-function fmtRounds(f,l){if(f==='actual')return [ACTR];if(S.libre)return RF.libre.slice();return RF[l.f].slice()}
+function fmtRounds(f,l){if(f==='actual')return [ACTR];if(S.libre)return RF.libre.slice();if(S.temp==='2017')return RF.t17.slice();return RF[l.f].slice()}
 function szOf(rd){return rd.act?(rd.rep?1:ACT.length):sz(rd)}
 function bodyV(){if(S.fmt==='actual')return actualV();return S.ri>=S.rounds.length?summaryV():roundV()}
 function fmtSeg(){return `<div class="seg" style="margin-bottom:12px"><button class="${S.fmt!=='actual'?'on':''}" onclick="setFmt('antigua')">Planilla antigua</button><button class="${S.fmt==='actual'?'on':''}" onclick="setFmt('actual')">Planilla actual</button></div>`}
@@ -491,7 +503,7 @@ function tablaHTML(rows,l){
 function comunidadV(){
  const head=`<h1 class="pg">Comunidad</h1><div class="mu" style="margin:-8px 2px 14px">Promedio de todos los usuarios. Las batallas libres no cuentan.</div>`;
  if(!S.comm5)return head+'<div class="card mu">Cargando tablas…</div>';
- return head+COMUN.map(id=>{const l=L.find(x=>x.i===id);const votes=(S.comm5[id]||[]).filter(v=>!v.free);const [a1]=accentOf(l);
+ return head+COMUN.map(id=>{const l=L.find(x=>x.i===id);const votes=(S.comm5[id]||[]).filter(v=>!v.free&&(v.temp||'2026')==='2026');const [a1]=accentOf(l);
   return `<div class="sec" style="color:${a1}"><span>${esc(l.n)}</span><span>${votes.length} votos</span></div>${votes.length?tablaHTML(standings(id,votes),l):'<div class="card mu">Todavía no hay votaciones en esta liga.</div>'}`}).join('');
 }
 function standingsCard(l){
@@ -518,12 +530,15 @@ function lgv(){
  <label class="f">Link de YouTube</label><input placeholder="https://youtube.com/watch?v=..." value="${esc(S.yt)}" oninput="S.yt=this.value">
  <div class="row" style="gap:8px;align-items:flex-start"><div style="flex:1;min-width:0"><label class="f">MC 1</label><input placeholder="MC 1" value="${esc(S.na)}" oninput="S.na=this.value"></div><div style="flex:1;min-width:0"><label class="f">MC 2</label><input placeholder="MC 2" value="${esc(S.nb)}" oninput="S.nb=this.value"></div></div>
  ${S.err?`<div class="err">${esc(S.err)}</div>`:''}<button class="btn" onclick="ytGo()">Votar esta batalla</button></div>
- ${standingsCard(l)}${ents.length?groups:'<div class="card mu" style="text-align:center">Aún no hay batallas cargadas para esta liga.</div>'}
- </div>`;
+ ${standingsCard(l)}${S.lg==='es'&&S.season==='2017'?t17V():ents.length?groups:'<div class="card mu" style="text-align:center">Aún no hay batallas cargadas para esta liga.</div>'}
+ ${S.lg==='es'?seasonSel():''}</div>`;
 }
+function t17V(){return S17.map(j=>`<div class="sec"><span>Jornada ${j.n}</span><span>${esc(j.fecha)}</span></div>${j.ciudad?`<div class="mu" style="margin:-4px 2px 8px">${esc(j.ciudad)}</div>`:''}${j.b.map((b,bi)=>`<button class="bat" onclick="start17(${j.n-1},${bi})"><span class="side">${esc(b[0])}</span><span class="vs">${b[2]?'EXH':'VS'}</span><span class="side r">${esc(b[1])}</span></button><div style="height:8px"></div>`).join('')}`).join('')}
+function start17(ji,bi){const j=S17[ji],b=j.b[bi];start({a:b[0],b:b[1],j:'Temporada 2017 · Jornada '+j.n+(b[2]?' · Exhibición':''),y:null,temp:'2017'})}
+function seasonSel(){const is17=S.season==='2017';return `<div class="card" style="margin-top:12px"><b>Temporada</b><select style="margin-top:8px" onchange="S.season=this.value;VKEY=null;R()"><option value="2026" ${is17?'':'selected'}>Temporada 2026-2027</option><option value="2017" ${is17?'selected':''}>Temporada 2017</option></select></div>`}
 function startBat(ci,bi){const e=CAL[ci];const b=batOf(e,e.b[bi]);start({a:b.a,b:b.b,j:b.j,y:b.y||null})}
 function ytGo(){const m=(S.yt||'').match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/);if(!m){S.err='Ese link no parece de YouTube. Prueba con otro.';return R()}S.err='';start({a:S.na.trim()||'MC 1',b:S.nb.trim()||'MC 2',j:'Batalla por link',y:m[1]})}
-function start(b){const l=curL();S.bt=b;S.libre=!!b.libre;S.editId=null;const exK=(S.libre?'libre':S.lg)+'|'+b.a+'|'+b.b;const exV=(S.myVotes||[]).find(x=>x.key===exK&&x.sc);if(exV)return startEdit(exV);S.ri=0;S.pi=0;S.rep=null;S.rounds=fmtRounds(S.fmt||'antigua',l);S.sc=S.rounds.map(rd=>[Array(szOf(rd)).fill(null),Array(szOf(rd)).fill(null)]);S.v='vote';R();window.scrollTo(0,0)}
+function start(b){const l=curL();S.bt=b;S.libre=!!b.libre;S.temp=b.temp||'2026';S.editId=null;const exK=(S.libre?'libre':S.lg)+'|'+b.a+'|'+b.b;const exV=(S.myVotes||[]).find(x=>x.key===exK&&x.sc);if(exV)return startEdit(exV);S.ri=0;S.pi=0;S.rep=null;S.rounds=fmtRounds(S.fmt||'antigua',l);S.sc=S.rounds.map(rd=>[Array(szOf(rd)).fill(null),Array(szOf(rd)).fill(null)]);S.v='vote';R();window.scrollTo(0,0)}
 function sumR(k,m){return sum(S.sc[k][m])}
 function tot(m){return S.rounds.reduce((a,_,k)=>a+sumR(k,m),0)}
 function mainTot(m){return S.rounds.reduce((a,rd,k)=>a+(rd.rep?0:sumR(k,m)),0)}
@@ -604,7 +619,7 @@ function sheetH(){const h=S.sheet;
  return `<div class="ov" onclick="closeSheet()"><div class="sh" onclick="event.stopPropagation()"><div class="row" style="justify-content:space-between;margin-bottom:14px"><b style="font-size:17px">${esc(title)}${lab?' · '+lab:''}</b><span class="mu">${range}</span></div><div class="pk">${vals.map(v=>`<button onclick="setV(${v})">${fmt(v)}</button>`).join('')}<button class="clr" onclick="setV(null)">Borrar</button></div></div></div>`}
 function buildVote(){const act=S.fmt==='actual';const a=act?mainTot(0):counted(0),b=act?mainTot(1):counted(1);
  const rows=S.rounds.map((r,k)=>({r:r.n,ta:sumR(k,0),tb:sumR(k,1),rep:!!r.rep})).filter(r=>S.rep==='voted'||!r.rep);
- return {l:S.lg,a:S.bt.a,b:S.bt.b,ta:a,tb:b,rows,date:today(),free:!!S.libre,j:S.bt.j||'',y:S.bt.y||null,rep:S.rep||'none',fmt:act?'actual':'antigua',sc:S.sc.map(p=>({a:p[0],b:p[1]}))}}
+ return {l:S.lg,a:S.bt.a,b:S.bt.b,ta:a,tb:b,rows,date:today(),free:!!S.libre,j:S.bt.j||'',y:S.bt.y||null,rep:S.rep||'none',fmt:act?'actual':'antigua',temp:S.temp||'2026',sc:S.sc.map(p=>({a:p[0],b:p[1]}))}}
 function summ(rows){let wa=0,wb=0,sa=0,sb=0;rows.forEach(r=>{sa+=r.ta;sb+=r.tb;if(r.ta>r.tb)wa++;else if(r.tb>r.ta)wb++});return {n:rows.length,wa,wb,sa,sb}}
 async function saveVote(){const v=buildVote();if(!S.me){S.pend=v;return openAuth('create')}await pushVote(v)}
 async function pushVote(v){
@@ -640,7 +655,7 @@ function statsCard(votes){const n=votes.length,by=L.map(l=>({l,c:votes.filter(v=
  const ring=by.map(o=>{const len=o.c/n*C,s=`<circle r="44" cx="60" cy="60" fill="none" stroke="${colr(o.l)}" stroke-width="14" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 60 60)"/>`;off+=len;return s}).join('');
  return `<div class="card"><div class="stats" style="margin-bottom:14px"><div class="stat"><big>${n}</big><span>Batallas votadas</span></div><div class="stat"><big>${by.length}</big><span>Ligas votadas</span></div></div>${n?`<div class="row"><svg width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="Votos por liga"><circle r="44" cx="60" cy="60" fill="none" stroke="var(--bd)" stroke-width="14"/>${ring}<text x="60" y="67" text-anchor="middle" font-size="22" font-weight="900" fill="var(--tx)">${n}</text></svg><div style="flex:1;min-width:0">${by.map(o=>`<div style="font-size:13px;margin:5px 0"><span style="color:${colr(o.l)};font-size:16px">●</span> ${esc(o.l.n)} <span class="mu">· ${o.c}</span></div>`).join('')}</div></div>`:'<div class="mu">Sin votos todavía.</div>'}</div>`}
 function voteList(list,from){if(list===null)return '<div class="card mu">Cargando votos…</div>';
- return list.length?list.map((v,i)=>{const l=L.find(x=>x.i===v.l);return `<button class="vrow" onclick="viewVote(${i},'${from}')">${l?logo(l,34):''}<div style="flex:1;min-width:0"><span class="pill ${v.free?'':'next'}">${v.free?'Batalla libre':'Batalla de liga'}${v.fmt==='actual'?' · Actual':''}</span><b style="display:block;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.a)} vs ${esc(v.b)}</b><div class="mu" style="font-size:12px">${esc(l?l.n:'')} · ${esc(v.date||'')}</div></div><b>${fmt(v.ta)} – ${fmt(v.tb)}</b></button>`}).join(''):'<div class="card mu">Sin votos todavía.</div>'}
+ return list.length?list.map((v,i)=>{const l=L.find(x=>x.i===v.l);return `<button class="vrow" onclick="viewVote(${i},'${from}')">${l?logo(l,34):''}<div style="flex:1;min-width:0"><span class="pill ${v.free?'':'next'}">${v.free?'Batalla libre':'Batalla de liga'}${v.fmt==='actual'?' · Actual':''}${v.temp==='2017'?' · Temporada 2017':''}</span><b style="display:block;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.a)} vs ${esc(v.b)}</b><div class="mu" style="font-size:12px">${esc(l?l.n:'')} · ${esc(v.date||'')}</div></div><b>${fmt(v.ta)} – ${fmt(v.tb)}</b></button>`}).join(''):'<div class="card mu">Sin votos todavía.</div>'}
 function viewVote(i,from){S.viewList=from==='perfil'?(S.myVotes||[]):(S.uVotes||[]);S.vi=i;S.vb=from;go('vd')}
 function userV(){if(!S.uProf)return `<button class="back" onclick="go('search')">${ico('back',18)} Buscar</button><div class="card mu">Cargando perfil…</div>`;
  const mine=S.me&&S.me.uid===S.uid;const fr=friendOf(S.uid);
@@ -772,7 +787,7 @@ async function refreshMine(){if(!S.me)return;try{S.myVotes=await B.votesOfUser(S
 function startEdit(v){
  if(!v.sc){S.msgP='Esta votación es antigua y no se puede editar. Bórrala y vótala otra vez.';S.v='perfil';return R()}
  const l=L.find(x=>x.i===v.l)||L[0];
- S.lg=v.l;S.libre=!!v.free;
+ S.lg=v.l;S.libre=!!v.free;S.temp=v.temp||'2026';
  S.bt={a:v.a,b:v.b,j:v.j||(v.free?'Batalla libre':l.n+' · '+v.date),y:v.y||null,libre:!!v.free};
  S.fmt=v.fmt==='actual'?'actual':'antigua';S.rounds=fmtRounds(S.fmt,l);if(v.rep==='voted')S.rounds.push(S.fmt==='actual'?REPA:REP);
  S.rep=v.rep==='voted'?'voted':(v.rep==='skipped'?'skipped':null);
