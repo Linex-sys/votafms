@@ -479,8 +479,11 @@ function standings(lg,votes){
  });
  return Object.values(T).sort((x,y)=>y.pts-x.pts||y.w-x.w||y.ptb-x.ptb||x.n.localeCompare(y.n));
 }
-function tablaHTML(rows){
- return `<div class="card" style="padding:8px 6px;overflow-x:auto"><div class="stbl">
+function tablaHTML(rows,l){
+ const [a1,a2]=accentOf(l);
+ return `<div class="card" style="padding:12px 8px;overflow-x:auto;--ac:${a1};--ac2:${a2};border-color:color-mix(in srgb,var(--ac) 55%,transparent);background:linear-gradient(160deg,color-mix(in srgb,var(--ac) 18%,var(--cd)),var(--cd) 60%)">
+ <div class="row" style="padding:0 6px 10px">${logo(l,34)}<b style="font-size:15px;color:var(--ac)">${esc(l.n)}</b></div>
+ <div class="stbl">
  <div class="sth">Pos</div><div class="sth" style="text-align:left">Participante</div><div class="sth">Pts</div><div class="sth">G</div><div class="sth">P</div><div class="sth">PTB</div>
  ${rows.map((r,i)=>`<div class="std${i<3?' top':''}">${i+1}</div><div class="std n">${esc(r.n)}</div><div class="std b">${r.pts}</div><div class="std">${r.w}</div><div class="std">${r.l}</div><div class="std">${fmt(Math.round(r.ptb*10)/10)}</div>`).join('')}
  </div></div>`;
@@ -488,8 +491,8 @@ function tablaHTML(rows){
 function comunidadV(){
  const head=`<h1 class="pg">Comunidad</h1><div class="mu" style="margin:-8px 2px 14px">Promedio de todos los usuarios. Las batallas libres no cuentan.</div>`;
  if(!S.comm5)return head+'<div class="card mu">Cargando tablas…</div>';
- return head+COMUN.map(id=>{const l=L.find(x=>x.i===id);const votes=(S.comm5[id]||[]).filter(v=>!v.free);
-  return `<div class="sec"><span>${esc(l.n)}</span><span>${votes.length} votos</span></div>${votes.length?tablaHTML(standings(id,votes)):'<div class="card mu">Todavía no hay votaciones en esta liga.</div>'}`}).join('');
+ return head+COMUN.map(id=>{const l=L.find(x=>x.i===id);const votes=(S.comm5[id]||[]).filter(v=>!v.free);const [a1]=accentOf(l);
+  return `<div class="sec" style="color:${a1}"><span>${esc(l.n)}</span><span>${votes.length} votos</span></div>${votes.length?tablaHTML(standings(id,votes),l):'<div class="card mu">Todavía no hay votaciones en esta liga.</div>'}`}).join('');
 }
 function standingsCard(l){
  if(!LINEUP[l.i])return '';
