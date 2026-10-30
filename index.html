@@ -305,6 +305,7 @@ const B={
  async getLinks(){const fm=FB.fm;const q=await fm.getDocs(fm.collection(FB.db,'videos'));const o={};q.docs.forEach(d=>{o[d.id]=d.data().y});return o},
  async setLink(id,y){const fm=FB.fm;await fm.setDoc(fm.doc(FB.db,'videos',id),{y,ts:Date.now()})},
   async votesOfLeague(l){const fm=FB.fm;const s=await fm.getDocs(fm.query(fm.collection(FB.db,'votes'),fm.where('l','==',l),fm.limit(2000)));return s.docs.map(d=>d.data())},
+ async changeUsername(uid,oldU,newU){const fm=FB.fm;const ex=await fm.getDoc(fm.doc(FB.db,'usernames',newU));if(ex.exists())throw new Error('taken');await fm.setDoc(fm.doc(FB.db,'usernames',newU),{uid});await fm.updateDoc(fm.doc(FB.db,'users',uid),{u:newU,unAt:Date.now()});await fm.deleteDoc(fm.doc(FB.db,'usernames',oldU))},
  async deleteUserDoc(uid,u){const fm=FB.fm;await fm.deleteDoc(fm.doc(FB.db,'users',uid));await fm.deleteDoc(fm.doc(FB.db,'usernames',u))},
  async listFriendDocs(uid){const fm=FB.fm;const [a,b]=await Promise.all([fm.getDocs(fm.query(fm.collection(FB.db,'friends'),fm.where('from','==',uid))),fm.getDocs(fm.query(fm.collection(FB.db,'friends'),fm.where('to','==',uid)))]);const out=[];a.docs.concat(b.docs).forEach(d=>{if(!out.find(x=>x.id===d.id))out.push({id:d.id,...d.data()})});return out},
  async sendFriend(me,meName,to,toName){const fm=FB.fm;await fm.setDoc(fm.doc(FB.db,'friends',me+'_'+to),{from:me,to,status:'pending',fromName:meName,toName,ts:Date.now()})},
@@ -707,7 +708,7 @@ function perfilV(){
  const m=S.me;const correo=FB&&FB.auth.currentUser?FB.auth.currentUser.email||'':'';
  return `${S.msgP?`<div class="ok">${esc(S.msgP)}</div>`:''}${profileHead(m,true)}<label class="btn s fotobtn">📷 Editar foto de perfil<input type="file" accept="image/*" style="display:none" onchange="cambiarFoto(this.files[0])"></label>
  ${correo?`<div class="mu" style="margin:-8px 2px 14px">Correo: ${esc(correo)}</div>`:''}
- <div class="card"><b>Editar info</b><div class="mu" style="margin:4px 0 12px">Solo tú puedes cambiar esta información.</div>
+ ${nameCardH()}<div class="card"><b>Editar info</b><div class="mu" style="margin:4px 0 12px">Solo tú puedes cambiar esta información.</div>
  <label class="f">País</label><input id="pf-p" value="${esc(m.p||'')}">
  <label class="f">MC favorito</label><input id="pf-m" value="${esc(m.m||'')}">
  <label class="f">Sobre mí</label><textarea id="pf-a" rows="3">${esc(m.a||'')}</textarea>
@@ -867,6 +868,16 @@ function friendsSheet(){const me=S.me?S.me.uid:null;if(!me)return '';
  const tabs=[['amigos','Amigos '+acc.length],['recibidas','Recibidas '+inc.length],['enviadas','Enviadas '+out.length]];
  return `<div class="ov" onclick="S.friendsOpen=false;R()"><div class="sh" onclick="event.stopPropagation()"><b style="font-size:19px">Amigos</b><div class="seg" style="margin:12px 0">${tabs.map(([k,t])=>`<button class="${tab===k?'on':''}" onclick="S.frTab='${k}';R()">${t}</button>`).join('')}</div>${body}</div></div>`;
 }
+const DAYS20=20*864e5;
+function nameCardH(){const m=S.me;const last=m.unAt||0;const left=last?Math.ceil((last+DAYS20-Date.now())/864e5):0;const lock=left>0;
+ return `<div class="card"><b>Nombre de usuario</b><div class="mu" style="margin:4px 0 12px">${lock?`Podrás cambiarlo en ${left} ${left===1?'día':'días'}.`:'Puedes cambiarlo ahora. Después de cambiarlo, podrás hacerlo otra vez cada 20 días.'}</div>
+ <input id="nu-new" placeholder="Nuevo nombre de usuario" ${lock?'disabled':''}><button class="btn sm" style="width:100%;justify-content:center" ${lock?'disabled':''} onclick="saveUsername()">Cambiar nombre de usuario</button></div>`}
+async function saveUsername(){const m=S.me;if(!m)return;const nu=(document.getElementById('nu-new').value||'').trim().toLowerCase();
+ if(!/^[a-z0-9._]{3,20}$/.test(nu)){S.msgP='Usa de 3 a 20 letras, números, punto o guion bajo.';return R()}
+ if(nu===m.u){S.msgP='Ese ya es tu nombre de usuario.';return R()}
+ try{await B.changeUsername(m.uid,m.u,nu);S.me={...S.me,u:nu,unAt:Date.now()};S.msgP='Tu nombre de usuario ahora es '+nu}
+ catch(e){S.msgP=(e&&e.message==='taken')?'Ese nombre de usuario ya está en uso.':'No se pudo cambiar el nombre. Intenta de nuevo.'}
+ R();}
 const VIEW={comunidad:comunidadV,libre:libreV,home:homeV,lg:lgv,vote:voteV,res:resV,cal:calV,search:searchV,user:userV,vd:vdV,perfil:perfilV};
 async function init(){
  const q=new URLSearchParams(location.search);
