@@ -196,6 +196,10 @@ button.card{width:100%;text-align:left;color:var(--tx);font:inherit;cursor:point
 .ib{position:relative}
 .nbadge2{position:absolute;top:-4px;right:-4px;background:var(--ac);color:#fff;border-radius:999px;font-size:10px;font-weight:900;padding:1px 6px;min-width:18px;text-align:center}
 img.av{object-fit:cover}
+.rtier{margin-bottom:12px}
+.rtop{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.rrow{display:flex;justify-content:space-between;padding:8px 10px;border-radius:12px;background:var(--bg2);border:1px solid var(--bd);margin-bottom:6px;font-size:14px;color:var(--mu)}
+.rrow.ok{color:var(--tx);border-color:rgba(250,204,21,.5)}
 .gbadge{width:40px;height:40px;border-radius:12px;background:#fff;color:#4285F4;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;flex:0 0 auto;box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:7;display:flex;justify-content:space-around;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(13,11,5,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--bd)}
 .nav button{flex:1;max-width:120px;border:0;background:none;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:4px;cursor:pointer}
@@ -437,7 +441,7 @@ function R(){
  }
  document.getElementById('top').innerHTML=topH();
  document.getElementById('nav').innerHTML=navH();
- document.getElementById('ov').innerHTML=(S.auth?authM():'')+(S.sheet?sheetH():'')+(S.fb?fbM():'')+(S.delAsk?delM():'')+(S.friendsOpen?friendsSheet():'');
+ document.getElementById('ov').innerHTML=(S.auth?authM():'')+(S.sheet?sheetH():'')+(S.fb?fbM():'')+(S.delAsk?delM():'')+(S.friendsOpen?friendsSheet():'')+(S.ranksOpen?ranksSheet():'');
  renderFloat();
 }
 function topH(){return `<div class="brand">${APP_ICON}<b>VotaFMS</b></div><div class="sp"></div>${S.me?`<button class="ib" onclick="openFriends()" aria-label="Amigos">${ico('users',18)}${pendCount()?`<span class="nbadge2">${pendCount()}</span>`:''}</button>`:''}<button class="ib" onclick="openFb()" aria-label="Enviar comentarios">${ico('chat',18)}</button>${S.me?`<button class="avbtn" onclick="go('perfil')" aria-label="Mi perfil">${avU(S.me,'')}</button>`:`<button class="btn sm" onclick="openAuth('in')">Entrar</button>`}`}
@@ -535,7 +539,7 @@ function lgv(){
  return `<div class="lgwrap" style="--ac:${ac1};--ac2:${ac2};--lc:${l.c}">
  <button class="back" onclick="go('home')">${ico('back',18)} Ligas</button>
  <div class="banner" style="--c:${l.c};--c2:${l.c2}">${logo(l,70)}<div style="flex:1;min-width:0"><span class="kicker">${esc(cur.st)}</span><h1>${esc(l.n)}</h1><p>${cur.d?esc(cur.d):'Fecha por confirmar'}</p></div></div>
- ${SEASON_OPTS[S.lg]?seasonSel(S.lg):''}<div class="card"><b>Votar una batalla por link</b><div class="mu" style="margin:4px 0 12px">Pega el link de YouTube y escribe los dos MCs.</div>
+ <button class="btn s" style="margin:0 0 12px;display:flex;align-items:center;justify-content:center;gap:10px" onclick="openRanks()">${rankBadge(rankInfo(S.myVotes||[]).t,28)} Ver mi rango</button>${SEASON_OPTS[S.lg]?seasonSel(S.lg):''}<div class="card"><b>Votar una batalla por link</b><div class="mu" style="margin:4px 0 12px">Pega el link de YouTube y escribe los dos MCs.</div>
  <label class="f">Link de YouTube</label><input placeholder="https://youtube.com/watch?v=..." value="${esc(S.yt)}" oninput="S.yt=this.value">
  <div class="row" style="gap:8px;align-items:flex-start"><div style="flex:1;min-width:0"><label class="f">MC 1</label><input placeholder="MC 1" value="${esc(S.na)}" oninput="S.na=this.value"></div><div style="flex:1;min-width:0"><label class="f">MC 2</label><input placeholder="MC 2" value="${esc(S.nb)}" oninput="S.nb=this.value"></div></div>
  ${S.err?`<div class="err">${esc(S.err)}</div>`:''}<button class="btn" onclick="ytGo()">Votar esta batalla</button></div>
@@ -886,12 +890,27 @@ async function saveUsername(){const m=S.me;if(!m)return;const nu=(document.getEl
  catch(e){S.msgP=(e&&e.message==='taken')?'Ese nombre de usuario ya está en uso.':'No se pudo cambiar el nombre. Intenta de nuevo.'}
  R();}
 const RANKS=['Underground','Regional','Semiprofesional','Profesional','Elite'];
+const RANK_STEP=8;
 function rankInfo(votes){const seen=new Set();(votes||[]).forEach(v=>{if(v.free)return;seen.add((v.temp||'2026')+'|'+v.l+'|'+[nrm(v.a),nrm(v.b)].sort().join('|'))});
- const n=seen.size;const idx=Math.min(Math.floor(n/4),14);const tier=RANKS[Math.floor(idx/3)];const sub=idx%3+1;
- const into=n-idx*4;const pct=idx>=14?100:Math.round(into/4*100);const next=idx>=14?0:4-into;
- return {n,name:tier+' '+sub,sub,pct,next}}
+ const n=seen.size;const idx=Math.min(Math.floor(n/RANK_STEP),14);const t=Math.floor(idx/3);const sub=idx%3+1;
+ const into=n-idx*RANK_STEP;const pct=idx>=14?100:Math.round(into/RANK_STEP*100);const next=idx>=14?0:RANK_STEP-into;
+ return {n,t,sub,name:RANKS[t]+' '+sub,pct,next}}
+function rankBadge(t,size){
+ const defs=`<defs><linearGradient id="rgU" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#64748B"/><stop offset="1" stop-color="#1E293B"/></linearGradient><linearGradient id="rgR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B45309"/><stop offset="1" stop-color="#78350F"/></linearGradient><linearGradient id="rgS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E2E8F0"/><stop offset="1" stop-color="#64748B"/></linearGradient><linearGradient id="rgP" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FDE047"/><stop offset="1" stop-color="#CA8A04"/></linearGradient><linearGradient id="rgE" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C084FC"/><stop offset="1" stop-color="#6366F1"/></linearGradient></defs>`;
+ const art=[
+  `<path d="M24 3 L43 10 V24 C43 35 34 42 24 46 C14 42 5 35 5 24 V10 Z" fill="url(#rgU)" stroke="#94A3B8" stroke-width="2"/><path d="M16 20 L24 30 L32 20" fill="none" stroke="#E2E8F0" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>`,
+  `<circle cx="24" cy="24" r="20" fill="url(#rgR)" stroke="#F59E0B" stroke-width="2"/><path d="M24 12 L27.5 20 L36 20.5 L29 26 L31.5 34.5 L24 29.5 L16.5 34.5 L19 26 L12 20.5 L20.5 20 Z" fill="#FDE68A"/>`,
+  `<path d="M24 3 L43 13.5 V34.5 L24 45 L5 34.5 V13.5 Z" fill="url(#rgS)" stroke="#E2E8F0" stroke-width="2"/><path d="M26 11 L16 26 H23 L21 37 L32 21 H25 Z" fill="#1E293B"/>`,
+  `<path d="M24 3 L43 10 V24 C43 35 34 42 24 46 C14 42 5 35 5 24 V10 Z" fill="url(#rgP)" stroke="#FDE047" stroke-width="2"/><path d="M14 30 L12 17 L19 22 L24 14 L29 22 L36 17 L34 30 Z" fill="#7C2D12"/>`,
+  `<path d="M24 4 L42 18 L24 44 L6 18 Z" fill="url(#rgE)" stroke="#E9D5FF" stroke-width="2"/><path d="M6 18 H42 M24 4 L17 18 L24 44 L31 18 Z" fill="none" stroke="#F5F3FF" stroke-width="1.5" opacity=".8"/>`
+ ];
+ return `<svg width="${size}" height="${size}" viewBox="0 0 48 48" aria-hidden="true">${defs}${art[t]}</svg>`}
 function rankCardH(votes){if(!votes)return '';const r=rankInfo(votes);
- return `<div class="card" style="display:flex;align-items:center;gap:14px"><div style="width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,#CA8A04,#FACC15);color:#1A1300;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;flex:0 0 auto">${r.sub}</div><div style="flex:1;min-width:0"><div class="kicker" style="color:var(--ac)">Rango</div><div style="font-size:19px;font-weight:900;margin-top:4px">${esc(r.name)}</div><div class="mu" style="margin:2px 0 8px">${r.n} ${r.n===1?'batalla de liga votada':'batallas de liga votadas'}${r.next?` · faltan ${r.next} para subir`:' · rango máximo'}</div><div class="bar"><i style="width:${r.pct}%"></i></div></div></div>`}
+ return `<div class="card" onclick="openRanks()" style="display:flex;align-items:center;gap:14px;cursor:pointer">${rankBadge(r.t,64)}<div style="flex:1;min-width:0"><div class="kicker" style="color:var(--ac)">Rango</div><div style="font-size:19px;font-weight:900;margin-top:4px">${esc(r.name)}</div><div class="mu" style="margin:2px 0 8px">${r.n} batallas de liga${r.next?` · faltan ${r.next} para subir`:' · rango máximo'}</div><div class="bar"><i style="width:${r.pct}%"></i></div></div></div>`}
+function openRanks(){S.ranksOpen=true;if(!S.myVotes&&S.me){B.votesOfUser(S.me.uid).then(v=>{S.myVotes=v;R()}).catch(()=>{})}R()}
+function ranksSheet(){const r=rankInfo(S.myVotes||[]);
+ const tiers=RANKS.map((nm,t)=>`<div class="rtier"><div class="rtop">${rankBadge(t,44)}<b>${nm}</b></div>${[0,1,2].map(k=>{const need=(t*3+k)*RANK_STEP,ok=r.n>=need;return `<div class="rrow${ok?' ok':''}"><span>${nm} ${k+1}</span><span>${need} ${need===1?'batalla':'batallas'}${ok?' ✓':''}</span></div>`}).join('')}</div>`).join('');
+ return `<div class="ov" onclick="S.ranksOpen=false;R()"><div class="sh" onclick="event.stopPropagation()"><div class="row" style="gap:14px;margin-bottom:12px">${rankBadge(r.t,72)}<div><div class="kicker">Tu rango</div><div style="font-size:21px;font-weight:900">${esc(r.name)}</div><div class="mu">${r.n} batallas de liga votadas</div></div></div><div class="bar" style="margin-bottom:14px"><i style="width:${r.pct}%"></i></div><div style="max-height:50vh;overflow:auto">${tiers}</div><div class="mu" style="margin-top:8px;text-align:center">Subes un nivel cada ${RANK_STEP} batallas de liga.</div></div></div>`}
 const VIEW={comunidad:comunidadV,libre:libreV,home:homeV,lg:lgv,vote:voteV,res:resV,cal:calV,search:searchV,user:userV,vd:vdV,perfil:perfilV};
 async function init(){
  const q=new URLSearchParams(location.search);
