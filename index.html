@@ -230,6 +230,26 @@ img.av{width:38px;height:38px;border-radius:50%;object-fit:cover;display:block;p
 img.av.lg{width:76px;height:76px;border:3px solid rgba(255,255,255,.25)}
 .fotobtn{display:flex;justify-content:center;align-items:center;cursor:pointer;margin-bottom:14px}
 .or:before,.or:after{content:"";flex:1;height:1px;background:var(--bd)}
+/* Rango visual mejorado */
+.rank-header{display:flex;align-items:center;gap:14px;margin-bottom:14px;padding:12px;background:linear-gradient(135deg,rgba(234,179,8,.15),rgba(77,163,255,.1));border-radius:20px;border:1px solid rgba(234,179,8,.3)}
+.rank-badge-big{flex:0 0 auto}
+.rank-info{flex:1;min-width:0}
+.rank-title{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--mu);margin-bottom:4px}
+.rank-name{font-size:24px;font-weight:900;margin:0 0 4px;color:var(--tx)}
+.rank-points{font-size:15px;font-weight:800;color:var(--ac);margin:0 0 6px}
+.rank-progress-text{font-size:12px;color:var(--mu);margin:0}
+.rank-bar-container{margin-top:10px}
+.rank-bar-bg{height:10px;border-radius:999px;background:var(--bd);overflow:hidden}
+.rank-bar-fill{height:100%;background:linear-gradient(90deg,var(--ac),var(--ac2));border-radius:999px;transition:width .5s ease}
+.rtier{margin-bottom:10px}
+.rtop{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.rtop b{font-size:15px;font-weight:900}
+.rrow{display:flex;justify-content:space-between;padding:8px 12px;border-radius:14px;background:var(--bg2);border:1px solid var(--bd);margin-bottom:6px;color:var(--tx)}
+.rrank{font-weight:800}
+.rneed{font-weight:700;color:var(--ac)}
+.rstat{font-size:11px;font-weight:700}
+.rrow.ok .rstat{color:var(--b2)}
+.rstat{color:var(--mu)}
 </style></head>
 <body>
 <header class="top" id="top"></header>
@@ -936,9 +956,10 @@ async function openInbox(){S.inboxOpen=true;R();
  R();}
 function closeInbox(){S.inboxOpen=false;R()}
 async function delNotifFromInbox(id){try{await B.delNotif(id);S.msgP='Notificación eliminada';await loadInbox();R()}catch(e){S.msgP='No se pudo eliminar.';R()}}
+async function clearAllInbox(){if(!confirm('¿Borrar todas las notificaciones? No se puede deshacer.'))return;try{const n=S.inbox.notifs||[];for(const x of n){await B.delNotif(x.id)}S.msgP='Bandeja vaciada';await loadInbox();R()}catch(e){S.msgP='No se pudo vaciar la bandeja.';R()}}
 function inboxSheet(){const n=S.inbox.notifs||[],a=S.inbox.avisos||[];
  const items=[...a.map(x=>({ts:x.ts||0,t:'Actualización',txt:x.text||'',k:'av',id:x.id})),...n.map(x=>({ts:x.ts||0,t:'Amigo',txt:x.text||'',k:'nt',id:x.id}))].sort((p,q)=>q.ts-p.ts);
- return `<div class="ov" onclick="closeInbox()"><div class="sh" onclick="event.stopPropagation()"><b style="font-size:19px">Bandeja de entrada</b><div class="mu" style="margin:4px 0 12px">Actualizaciones de la app y actividad de tus amigos.</div>${items.length?items.map(it=>`<div class="frow" style="align-items:flex-start"><div style="flex:1;min-width:0"><span class="pill ${it.k==='av'?'next':''}">${it.t}</span><div style="margin-top:6px;font-size:14px">${esc(it.txt)}</div><div class="mu" style="font-size:11px;margin-top:2px">${it.ts?new Date(it.ts).toLocaleString('es'):''}</div></div>${it.k!=='av'?`<button class="fbtn sent" onclick="event.stopPropagation();delNotifFromInbox('${esc(it.id)}')">Borrar</button>`:''}</div>`).join(''):'<div class="mu">No tienes notificaciones.</div>'}${n.length>=5?'<div class="mu" style="margin-top:10px">Al cerrar esta bandeja se vacía, porque llegaron 5 notificaciones.</div>':''}</div></div>`}
+ return `<div class="ov" onclick="closeInbox()"><div class="sh" onclick="event.stopPropagation()"><b style="font-size:19px">Bandeja de entrada</b><div class="mu" style="margin:4px 0 12px">Actualizaciones de la app y actividad de tus amigos.</div>${items.length?`<div style="margin-bottom:10px"><button class="btn s" style="width:100%;margin-bottom:6px" onclick="event.stopPropagation();clearAllInbox()">Borrar toda la bandeja</button>${items.map(it=>`<div class="frow" style="align-items:flex-start"><div style="flex:1;min-width:0"><span class="pill ${it.k==='av'?'next':''}">${it.t}</span><div style="margin-top:6px;font-size:14px">${esc(it.txt)}</div><div class="mu" style="font-size:11px;margin-top:2px">${it.ts?new Date(it.ts).toLocaleString('es'):''}</div></div>${it.k!=='av'?`<button class="fbtn sent" onclick="event.stopPropagation();delNotifFromInbox('${esc(it.id)}')">Borrar</button>`:''}</div>`).join('')}</div>`:'<div class="mu">No tienes notificaciones.</div>'}${n.length>=5?'<div class="mu" style="margin-top:10px">Al cerrar esta bandeja se vacía, porque llegaron 5 notificaciones.</div>':''}</div></div>`}
 function openFriends(){S.friendsOpen=true;S.frTab=S.frTab||'amigos';R()}
 function friendsSheet(){const me=S.me?S.me.uid:null;if(!me)return '';
  const tab=S.frTab||'amigos';
@@ -987,8 +1008,10 @@ function rankCardH(votes){if(!votes)return '';const r=rankInfo(votes);
  return `<div class="card" onclick="openRanks()" style="display:flex;align-items:center;gap:14px;cursor:pointer">${rankBadge(r.t,64)}<div style="flex:1;min-width:0"><div class="kicker" style="color:var(--ac)">Rango</div><div style="font-size:19px;font-weight:900;margin-top:4px">${esc(r.name)}</div><div class="mu" style="margin:2px 0 8px">${r.n} puntos${r.next?` · faltan ${r.next} pts para subir`:' · rango máximo'}</div><div class="bar"><i style="width:${r.pct}%"></i></div></div></div>`}
 function openRanks(){S.ranksOpen=true;if(!S.myVotes&&S.me){cleanMine().then(v=>{S.myVotes=v;R()}).catch(()=>{})}R()}
 function ranksSheet(){const r=rankInfo(S.myVotes||[]);
- const tiers=RANKS.map((nm,t)=>{const out=[];for(let k=0;k<3;k++){const lvlNum=t*3+k+1;const need=lvlNum===1?0:(lvlNum<=15?RANK_TH[lvlNum-2]:6700);const ok=r.n>=need;out.push(`<div class="rrow${ok?' ok':''}"><span>${nm} ${k+1}</span><span style="font-weight:700">${need} pts</span><span style="color:var(--mu);font-size:11px">${ok?'Alcanzado':'Pendiente'}</span></div>`)}return `<div class="rtier"><div class="rtop">${rankBadge(t,44)}<b>${nm}</b></div>${out.join('')}</div>`}).join('');
- return `<div class="ov" onclick="S.ranksOpen=false;R()"><div class="sh" onclick="event.stopPropagation()"><div class="row" style="gap:14px;margin-bottom:12px">${rankBadge(r.t,72)}<div><div class="kicker">Tu rango</div><div style="font-size:21px;font-weight:900">${esc(r.name)}</div><div class="mu">${r.n} puntos totales${r.next?` · faltan ${r.next} pts para el siguiente nivel`:' · Has alcanzado el rango máximo'}</div></div></div><div class="bar" style="margin-bottom:14px"><i style="width:${r.pct}%"></i></div><div style="max-height:50vh;overflow:auto">${tiers}</div><div class="mu" style="margin-top:8px;text-align:center">Para llegar a <b>Elite 3</b> necesitas <b>6700 puntos</b> en total votando batallas de liga.</div></div></div>`}
+ const maxPts=6700;
+ const tiers=RANKS.map((nm,t)=>{const out=[];for(let k=0;k<3;k++){const lvlNum=t*3+k+1;const need=lvlNum===1?0:(lvlNum<=15?RANK_TH[lvlNum-2]:maxPts);const ok=r.n>=need;out.push(`<div class="rrow${ok?' ok':''}"><div class="rrank">${nm} ${k+1}</div><div class="rneed">${need} pts</div><div class="rstat">${ok?'✓ Alcanzado':'Pendiente'}</div></div>`)}return `<div class="rtier"><div class="rtop">${rankBadge(t,44)}<b>${nm}</b></div>${out.join('')}</div>`}).join('');
+ const pct=Math.min(Math.round(r.n/maxPts*100),100);
+ return `<div class="ov" onclick="S.ranksOpen=false;R()"><div class="sh" onclick="event.stopPropagation()"><div class="rank-header"><div class="rank-badge-big">${rankBadge(r.t,96)}</div><div class="rank-info"><div class="rank-title">Tu rango</div><div class="rank-name">${esc(r.name)}</div><div class="rank-points">${r.n} <span class="mu">puntos totales</span></div><div class="rank-progress-text">${r.next?`Faltan ${r.next} pts para el siguiente nivel`:'Has alcanzado el rango máximo'}</div></div></div><div class="rank-bar-container"><div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${pct}%"></div></div></div><div style="max-height:50vh;overflow:auto">${tiers}</div><div class="mu" style="margin-top:8px;text-align:center">Para llegar a <b>Elite 3</b> necesitas <b>6700 puntos</b> en total votando batallas de liga.</div></div></div>`}
 const bkey=v=>(v.free?'libre':v.l)+'|'+(v.temp||'2026')+'|'+[nrm(v.a),nrm(v.b)].sort().join('|');
 function splitDups(list){const seen=new Set(),keep=[],dups=[];[...(list||[])].sort((a,b)=>(a.ts||0)-(b.ts||0)).forEach(v=>{if(v.free){keep.push(v);return}const k=bkey(v);if(seen.has(k)){dups.push(v)}else{seen.add(k);keep.push(v)}});keep.sort((a,b)=>(b.ts||0)-(a.ts||0));return {keep,dups}}
 async function cleanMine(){const all=await B.votesOfUser(S.me.uid);const r=splitDups(all);for(const d of r.dups){try{if(d.id)await B.deleteVote(d.id)}catch(e){}}return r.keep}
