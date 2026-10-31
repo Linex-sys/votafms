@@ -914,12 +914,12 @@ async function deleteAccount(){
 }
 
 const AVISOS=[
- {ts:Date.parse('2026-10-30T20:00:00'),text:'Calendario renovado: ordenado por fecha, con pestañas de Próximas y Finalizadas. FMS Colombia Jornada 2 (Cali, 14 de noviembre) ya está en el calendario.'},
- {ts:Date.parse('2026-10-30T19:00:00'),text:'Cada batalla de liga se puede votar una sola vez. Si quieres cambiarla, edítala desde tu perfil; para votarla otra vez, usa Batalla libre.'},
- {ts:Date.parse('2026-10-30T18:00:00'),text:'Tus votos ahora se ven en una lista deslizable: aparecen 5 a la vez y puedes deslizar para ver el resto.'},
- {ts:Date.parse('2026-10-30T12:00:00'),text:'Nueva bandeja de entrada: aquí verás las actualizaciones de la app y lo que votan tus amigos.'},
- {ts:Date.parse('2026-10-30T09:00:00'),text:'Rangos nuevos: sube de Underground a Elite votando batallas de liga.'},
-{ts:Date.parse('2026-10-31T10:00:00'),text:'Nueva actualización: sistema de rango por puntos. Cada liga da puntos según su prestigio (World Series da más). Al subir de rango te avisamos a tus amigos en la bandeja de entrada. Se añadieron las temporadas FMS 2020 de España, Argentina, Chile, México, Perú e Internacional.'}
+ {ts:Date.parse('2026-10-30T20:00:00'),text:'Actualización de calendario: ahora ordenado por fecha con pestañas de Próximas y Finalizadas. FMS Colombia Jornada 2 disponible (Cali, 14 de noviembre).'},
+ {ts:Date.parse('2026-10-30T19:00:00'),text:'Votos de liga: cada batalla solo se puede votar una vez. Para editar, ve a tu perfil; para repetir, usa Batalla libre.'},
+ {ts:Date.parse('2026-10-30T18:00:00'),text:'Historial de votos: lista deslizable con 5 votos por vista. Desliza para ver el resto.'},
+ {ts:Date.parse('2026-10-30T12:00:00'),text:'Bandeja de entrada habilitada: recibe actualizaciones de la app y actividad de tus amigos.'},
+ {ts:Date.parse('2026-10-30T09:00:00'),text:'Sistema de rangos: progresa de Underground a Elite votando batallas de liga.'},
+ {ts:Date.parse('2026-10-31T10:00:00'),text:'Nueva actualización: rango por puntos según liga (World Series da más). Notificación a amigos al subir de rango. Temporadas FMS 2020 añadidas.'}
 ];
 S.inbox={notifs:[],avisos:[]};S.unread=0;S.inboxOpen=false;
 async function loadInbox(){if(!S.me)return;try{const n=await B.getNotifs(S.me.uid);const a=AVISOS;S.inbox={notifs:n,avisos:a};const vis=S.me.avisosVistos||0;S.unread=n.filter(x=>!x.read).length+a.filter(x=>x.ts>vis).length}catch(e){}}
@@ -935,9 +935,10 @@ async function openInbox(){S.inboxOpen=true;R();
   S.unread=0}catch(e){}
  R();}
 function closeInbox(){S.inboxOpen=false;R()}
+async function delNotifFromInbox(id){try{await B.delNotif(id);S.msgP='Notificación eliminada';await loadInbox();R()}catch(e){S.msgP='No se pudo eliminar.';R()}}
 function inboxSheet(){const n=S.inbox.notifs||[],a=S.inbox.avisos||[];
- const items=[...a.map(x=>({ts:x.ts||0,t:'Actualización',txt:x.text||'',k:'av'})),...n.map(x=>({ts:x.ts||0,t:'Amigo',txt:x.text||'',k:'nt'}))].sort((p,q)=>q.ts-p.ts);
- return `<div class="ov" onclick="closeInbox()"><div class="sh" onclick="event.stopPropagation()"><b style="font-size:19px">Bandeja de entrada</b><div class="mu" style="margin:4px 0 12px">Actualizaciones de la app y actividad de tus amigos.</div>${items.length?items.map(it=>`<div class="frow" style="align-items:flex-start"><div style="flex:1;min-width:0"><span class="pill ${it.k==='av'?'next':''}">${it.t}</span><div style="margin-top:6px;font-size:14px">${esc(it.txt)}</div><div class="mu" style="font-size:11px;margin-top:2px">${it.ts?new Date(it.ts).toLocaleString('es'):''}</div></div></div>`).join(''):'<div class="mu">No tienes notificaciones.</div>'}${n.length>=5?'<div class="mu" style="margin-top:10px">Al cerrar esta bandeja se vacía, porque llegaron 5 notificaciones.</div>':''}</div></div>`}
+ const items=[...a.map(x=>({ts:x.ts||0,t:'Actualización',txt:x.text||'',k:'av',id:x.id})),...n.map(x=>({ts:x.ts||0,t:'Amigo',txt:x.text||'',k:'nt',id:x.id}))].sort((p,q)=>q.ts-p.ts);
+ return `<div class="ov" onclick="closeInbox()"><div class="sh" onclick="event.stopPropagation()"><b style="font-size:19px">Bandeja de entrada</b><div class="mu" style="margin:4px 0 12px">Actualizaciones de la app y actividad de tus amigos.</div>${items.length?items.map(it=>`<div class="frow" style="align-items:flex-start"><div style="flex:1;min-width:0"><span class="pill ${it.k==='av'?'next':''}">${it.t}</span><div style="margin-top:6px;font-size:14px">${esc(it.txt)}</div><div class="mu" style="font-size:11px;margin-top:2px">${it.ts?new Date(it.ts).toLocaleString('es'):''}</div></div>${it.k!=='av'?`<button class="fbtn sent" onclick="event.stopPropagation();delNotifFromInbox('${esc(it.id)}')">Borrar</button>`:''}</div>`).join(''):'<div class="mu">No tienes notificaciones.</div>'}${n.length>=5?'<div class="mu" style="margin-top:10px">Al cerrar esta bandeja se vacía, porque llegaron 5 notificaciones.</div>':''}</div></div>`}
 function openFriends(){S.friendsOpen=true;S.frTab=S.frTab||'amigos';R()}
 function friendsSheet(){const me=S.me?S.me.uid:null;if(!me)return '';
  const tab=S.frTab||'amigos';
@@ -985,8 +986,9 @@ function rankCardH(votes){if(!votes)return '';const r=rankInfo(votes);
  return `<div class="card" onclick="openRanks()" style="display:flex;align-items:center;gap:14px;cursor:pointer">${rankBadge(r.t,64)}<div style="flex:1;min-width:0"><div class="kicker" style="color:var(--ac)">Rango</div><div style="font-size:19px;font-weight:900;margin-top:4px">${esc(r.name)}</div><div class="mu" style="margin:2px 0 8px">${r.n} puntos${r.next?` · faltan ${r.next} pts para subir`:' · rango máximo'}</div><div class="bar"><i style="width:${r.pct}%"></i></div></div></div>`}
 function openRanks(){S.ranksOpen=true;if(!S.myVotes&&S.me){cleanMine().then(v=>{S.myVotes=v;R()}).catch(()=>{})}R()}
 function ranksSheet(){const r=rankInfo(S.myVotes||[]);
- const tiers=RANKS.map((nm,t)=>{const out=[];for(let k=0;k<3;k++){const lvl=t*3+k+1;const need=RANK_TH[lvl-1]||0;const ok=r.n>=need;out.push(`<div class="rrow${ok?' ok':''}"><span>${nm} ${k+1}</span><span>${need} pts${ok?' ✓':''}</span></div>`)}return `<div class="rtier"><div class="rtop">${rankBadge(t,44)}<b>${nm}</b></div>${out.join('')}</div>`}).join('');
- return `<div class="ov" onclick="S.ranksOpen=false;R()"><div class="sh" onclick="event.stopPropagation()"><div class="row" style="gap:14px;margin-bottom:12px">${rankBadge(r.t,72)}<div><div class="kicker">Tu rango</div><div style="font-size:21px;font-weight:900">${esc(r.name)}</div><div class="mu">${r.n} puntos totales${r.next?` · faltan ${r.next} pts`:' · rango máximo'}</div></div></div><div class="bar" style="margin-bottom:14px"><i style="width:${r.pct}%"></i></div><div style="max-height:50vh;overflow:auto">${tiers}</div><div class="mu" style="margin-top:8px;text-align:center">Cada batalla de liga suma puntos según su liga. Entre más alto el rango, más puntos necesitas.</div></div></div>`}
+ const maxNeed=RANK_TH[RANK_TH.length-1]||0;
+ const tiers=RANKS.map((nm,t)=>{const out=[];for(let k=0;k<3;k++){const lvl=t*3+k+1;const need=RANK_TH[lvl-1]||0;const ok=r.n>=need;out.push(`<div class="rrow${ok?' ok':''}"><span>${nm} ${k+1}</span><span style="font-weight:700">${need} pts</span><span style="color:var(--mu);font-size:11px">${ok?'Alcanzado':'Pendiente'}</span></div>`)}return `<div class="rtier"><div class="rtop">${rankBadge(t,44)}<b>${nm}</b></div>${out.join('')}</div>`}).join('');
+ return `<div class="ov" onclick="S.ranksOpen=false;R()"><div class="sh" onclick="event.stopPropagation()"><div class="row" style="gap:14px;margin-bottom:12px">${rankBadge(r.t,72)}<div><div class="kicker">Tu rango</div><div style="font-size:21px;font-weight:900">${esc(r.name)}</div><div class="mu">${r.n} puntos totales${r.next?` · faltan ${r.next} pts para el siguiente nivel`:' · Has alcanzado el rango máximo'}</div></div></div><div class="bar" style="margin-bottom:14px"><i style="width:${r.pct}%"></i></div><div style="max-height:50vh;overflow:auto">${tiers}</div><div class="mu" style="margin-top:8px;text-align:center">Para llegar a <b>Elite 3</b> necesitas <b>${maxNeed} puntos</b> en total votando batallas de liga.</div></div></div>`}
 const bkey=v=>(v.free?'libre':v.l)+'|'+(v.temp||'2026')+'|'+[nrm(v.a),nrm(v.b)].sort().join('|');
 function splitDups(list){const seen=new Set(),keep=[],dups=[];[...(list||[])].sort((a,b)=>(a.ts||0)-(b.ts||0)).forEach(v=>{if(v.free){keep.push(v);return}const k=bkey(v);if(seen.has(k)){dups.push(v)}else{seen.add(k);keep.push(v)}});keep.sort((a,b)=>(b.ts||0)-(a.ts||0));return {keep,dups}}
 async function cleanMine(){const all=await B.votesOfUser(S.me.uid);const r=splitDups(all);for(const d of r.dups){try{if(d.id)await B.deleteVote(d.id)}catch(e){}}return r.keep}
