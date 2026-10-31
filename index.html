@@ -272,6 +272,56 @@ img.av.lg{width:76px;height:76px;border:3px solid rgba(255,255,255,.25)}
 .rstat{color:var(--mu)}
 .rank-footer{margin-top:14px;padding:12px;background:rgba(234,179,8,.08);border-radius:16px;border:1px solid rgba(234,179,8,.2);text-align:center}
 .rank-footer strong{background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* === Mejora visual rangos y tablas === */
+.std.n.has-tag{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;white-space:normal}
+.std.n .nm{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stag{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;padding:2px 7px;border-radius:999px;line-height:1.3;white-space:nowrap}
+.stag.champ{color:#422006;background:linear-gradient(90deg,#FDE047,#F59E0B);box-shadow:0 0 10px rgba(250,204,21,.45)}
+.stag.desc{color:#F87171;background:rgba(248,113,113,.14);border:1px solid rgba(248,113,113,.4)}
+.std.ch{background:linear-gradient(90deg,rgba(250,204,21,.16),rgba(250,204,21,.04))}
+.std.ch:first-of-type{}
+.rank-header{background:radial-gradient(circle at 12% 20%,color-mix(in srgb,var(--tc,#EAB308) 30%,transparent),transparent 60%),linear-gradient(135deg,rgba(234,179,8,.14),rgba(77,163,255,.1));border-color:color-mix(in srgb,var(--tc,#EAB308) 55%,transparent)}
+.rank-badge-big{position:relative;padding:6px}
+.rank-badge-big::before{content:"";position:absolute;inset:-4px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--tc,#EAB308) 45%,transparent),transparent 70%);animation:rkpulse 3s ease-in-out infinite}
+.rank-badge-big svg{position:relative}
+.rpips{display:flex;gap:4px;margin:0 0 8px}
+.rpip{width:18px;height:6px;border-radius:999px;background:rgba(255,255,255,.12)}
+.rpip.on{background:var(--tc,var(--ac));box-shadow:0 0 8px var(--tc,var(--ac))}
+.rbar-lbl{display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--mu);margin-top:6px}
+.rbar-lbl b{color:var(--tx)}
+.rtier{border-radius:20px;padding:10px;background:linear-gradient(160deg,color-mix(in srgb,var(--tc) 10%,transparent),transparent 70%);border:1px solid color-mix(in srgb,var(--tc) 22%,transparent)}
+.rtier.cur{border-color:color-mix(in srgb,var(--tc) 70%,transparent);box-shadow:0 0 22px color-mix(in srgb,var(--tc) 22%,transparent)}
+.rtier.lock{opacity:.62}
+.rtier.lock .rtop svg{filter:grayscale(.85) brightness(.8)}
+.rtop{border-left:3px solid var(--tc);background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 16%,transparent),transparent)}
+.rtop b{background:none;color:var(--tc);-webkit-text-fill-color:var(--tc)}
+.rtop .rtsub{margin-left:auto;font-size:11px;font-weight:800;color:var(--mu);text-align:right}
+.rtop .rtsub i{font-style:normal;display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--tc)}
+.rrow{align-items:center;gap:8px}
+.rrow .rrank{flex:1;min-width:0}
+.rrow.ok .rstat{background:color-mix(in srgb,var(--tc) 22%,transparent);color:var(--tc);box-shadow:none}
+.rrow.now{border-color:var(--tc);background:linear-gradient(135deg,color-mix(in srgb,var(--tc) 22%,transparent),color-mix(in srgb,var(--tc) 5%,transparent));box-shadow:0 0 14px color-mix(in srgb,var(--tc) 30%,transparent)}
+.rrow.now .rstat{background:var(--tc);color:#111;box-shadow:none}
+.rrow.now .rrank::before{background:var(--tc);box-shadow:0 0 10px var(--tc)}
+.rrow.nxt{border-style:dashed;border-color:color-mix(in srgb,var(--tc) 60%,transparent)}
+.rrow:hover{transform:none}
+.rrank .lv{font-size:10px;font-weight:800;color:var(--mu);margin-left:2px}
+.rneed{font-size:13px}
+.rank-foot2{display:flex;gap:8px;margin-top:12px}
+.rank-foot2>div{flex:1;text-align:center;padding:10px 6px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--bd);font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.6px}
+.rank-foot2 b{display:block;font-size:17px;color:var(--ac);letter-spacing:0;margin-bottom:2px}
+.rcard{display:flex;align-items:center;gap:14px;cursor:pointer;position:relative;overflow:hidden;background:radial-gradient(circle at 0% 0%,color-mix(in srgb,var(--tc) 24%,transparent),transparent 55%),var(--cd);border-color:color-mix(in srgb,var(--tc) 50%,transparent)}
+.rcard .rbw{position:relative;flex:0 0 auto;padding:2px}
+.rcard .rbw::before{content:"";position:absolute;inset:-6px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--tc) 40%,transparent),transparent 70%)}
+.rcard .rbw svg{position:relative;display:block}
+.rcard .rtag{font-size:10px;font-weight:900;letter-spacing:1.6px;text-transform:uppercase;color:var(--tc)}
+.rcard .rnm{font-size:20px;font-weight:900;margin:2px 0;color:var(--tx)}
+.rcard .rchev{font-size:11px;font-weight:800;color:var(--mu);margin-top:6px;display:flex;justify-content:space-between}
+.rcard .bar i{background:linear-gradient(90deg,var(--tc),color-mix(in srgb,var(--tc) 55%,#fff))}
+.rankup-glow{background:radial-gradient(circle,color-mix(in srgb,var(--tc,#EAB308) 45%,transparent),transparent 70%)}
+.rankup-k{color:var(--tc,var(--ac))}
+.rankup-box{border-color:color-mix(in srgb,var(--tc,#EAB308) 60%,transparent);box-shadow:0 0 60px color-mix(in srgb,var(--tc,#EAB308) 35%,transparent)}
 </style></head>
 <body>
 <header class="top" id="top"></header>
@@ -574,7 +624,8 @@ function tablaHTML(rows,l){
  <div class="stbl">
  <div class="sth">Pos</div><div class="sth" style="text-align:left">Participante</div><div class="sth">Pts</div><div class="sth">G</div><div class="sth">P</div><div class="sth">PTB</div>
  ${rows.map((r,i)=>{const n=rows.length,live=l.i!=='in'&&rows.some(x=>x.pts>0),dn=live&&n>=5&&i>=n-2,ch=live&&i===0;
-  return `${ch?'<div class="stband champ">🏆 Campeón</div>':''}${dn&&i===n-2?'<div class="stband desc">⬇ Descenso</div>':''}<div class="std${i<3?' top':''}${dn?' dn':''}">${i+1}</div><div class="std n${dn?' dn':''}">${esc(r.n)}</div><div class="std b${dn?' dn':''}">${r.pts}</div><div class="std${dn?' dn':''}">${r.w}</div><div class="std${dn?' dn':''}">${r.l}</div><div class="std${dn?' dn':''}">${fmt(Math.round(r.ptb*10)/10)}</div>`}).join('')}
+  const tag=ch?'<span class="stag champ">🏆 Campeón</span>':dn?'<span class="stag desc">⬇ Descenso</span>':'';const c=ch?' ch':'';
+  return `<div class="std${i<3?' top':''}${dn?' dn':''}${c}">${i+1}</div><div class="std n${tag?' has-tag':''}${dn?' dn':''}${c}"><span class="nm">${esc(r.n)}</span>${tag}</div><div class="std b${dn?' dn':''}${c}">${r.pts}</div><div class="std${dn?' dn':''}${c}">${r.w}</div><div class="std${dn?' dn':''}${c}">${r.l}</div><div class="std${dn?' dn':''}${c}">${fmt(Math.round(r.ptb*10)/10)}</div>`}).join('')}
  </div></div>`;
 }
 function comunidadV(){
@@ -984,7 +1035,7 @@ async function notifyRankUp(r){if(!S.me)return;const me=S.me;
  try{await B.addNotif({to:me.uid,from:'system',fromName:'VotaFMS',text:'🏆 ¡Subiste de rango! Ahora eres '+r.name+' ('+r.n+' puntos).',ts:Date.now(),read:false,type:'rankup'})}catch(e){}
  const acc=(S.fr||[]).filter(f=>f.status==='accepted');
  for(const f of acc){const to=f.from===me.uid?f.to:f.from;try{await B.addNotif({to,from:me.uid,fromName:me.u,text:'🏆 '+me.u+' subió de rango a '+r.name+' ('+r.n+' puntos)',ts:Date.now(),read:false,type:'rankup'})}catch(e){}}}
-function rankUpAnim(){const r=S.rankUp.to,f=S.rankUp.from;return `<div class="rankup-ov" onclick="S.rankUp=null;R()"><div class="rankup-box" onclick="event.stopPropagation()"><div class="rankup-glow"><div class="rankup-badge">${rankBadge(r.t,110)}</div></div><div class="rankup-k">¡Subiste de rango!</div><h2>${esc(r.name)}</h2><div class="mu" style="margin-bottom:6px">${esc(f?f.name:'')} → ${esc(r.name)}</div><div class="mu" style="margin-bottom:14px">${r.n} puntos totales · ${r.next?`faltan ${r.next} pts para el siguiente`:'rango máximo'}</div><div class="bar" style="margin:0 auto 16px;width:200px"><i style="width:${r.pct}%"></i></div><button class="btn" onclick="S.rankUp=null;R()">Seguir votando</button></div></div>`}
+function rankUpAnim(){const r=S.rankUp.to,f=S.rankUp.from;return `<div class="rankup-ov" onclick="S.rankUp=null;R()" style="--tc:${rcol(r.t)}"><div class="rankup-box" onclick="event.stopPropagation()"><div class="rankup-glow"><div class="rankup-badge">${rankBadge(r.t,110)}</div></div><div class="rankup-k">¡Subiste de rango!</div><h2>${esc(r.name)}</h2><div class="mu" style="margin-bottom:6px">${esc(f?f.name:'')} → ${esc(r.name)}</div><div class="mu" style="margin-bottom:14px">${r.n} puntos totales · ${r.next?`faltan ${r.next} pts para el siguiente`:'rango máximo'}</div><div class="bar" style="margin:0 auto 16px;width:200px"><i style="width:${r.pct}%"></i></div><button class="btn" onclick="S.rankUp=null;R()">Seguir votando</button></div></div>`}
 async function openInbox(){S.inboxOpen=true;R();
  try{const n=S.inbox.notifs||[];for(const x of n.filter(x=>!x.read)){await B.readNotif(x.id)}
   const now=Date.now();await B.updateUser(S.me.uid,{avisosVistos:now});S.me={...S.me,avisosVistos:now};
@@ -1032,6 +1083,9 @@ function rankInfo(votes){const seen=new Set();let total=0;(votes||[]).forEach(v=
  const curThr=idx===0?0:RANK_TH[idx-1],nxtThr=isMax?null:RANK_TH[idx];
  const pct=isMax?100:Math.round((total-curThr)/(nxtThr-curThr)*100);const next=isMax?0:nxtThr-total;
  return {n:total,t,sub,name:RANKS[t]+' '+sub,pct,next,lvl:idx}}
+const RANK_COL=['#94A3B8','#F59E0B','#E2E8F0','#FDE047','#C084FC'];
+const rcol=t=>RANK_COL[t]||'#EAB308';
+const rpips=(sub,n=3)=>`<div class="rpips">${[1,2,3].map(i=>`<span class="rpip${i<=sub?' on':''}"></span>`).join('')}</div>`;
 function rankBadge(t,size){
  const defs=`<defs><linearGradient id="rgU" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#64748B"/><stop offset="1" stop-color="#1E293B"/></linearGradient><linearGradient id="rgR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B45309"/><stop offset="1" stop-color="#78350F"/></linearGradient><linearGradient id="rgS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E2E8F0"/><stop offset="1" stop-color="#64748B"/></linearGradient><linearGradient id="rgP" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FDE047"/><stop offset="1" stop-color="#CA8A04"/></linearGradient><linearGradient id="rgE" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C084FC"/><stop offset="1" stop-color="#6366F1"/></linearGradient></defs>`;
  const art=[
@@ -1041,15 +1095,18 @@ function rankBadge(t,size){
   `<path d="M24 3 L43 10 V24 C43 35 34 42 24 46 C14 42 5 35 5 24 V10 Z" fill="url(#rgP)" stroke="#FDE047" stroke-width="2"/><path d="M14 30 L12 17 L19 22 L24 14 L29 22 L36 17 L34 30 Z" fill="#7C2D12"/>`,
   `<path d="M24 4 L42 18 L24 44 L6 18 Z" fill="url(#rgE)" stroke="#E9D5FF" stroke-width="2"/><path d="M6 18 H42 M24 4 L17 18 L24 44 L31 18 Z" fill="none" stroke="#F5F3FF" stroke-width="1.5" opacity=".8"/>`
  ];
- return `<svg width="${size}" height="${size}" viewBox="0 0 48 48" aria-hidden="true">${defs}${art[t]}</svg>`}
+ return `<svg width="${size}" height="${size}" viewBox="0 0 48 48" aria-hidden="true">${defs}<g filter="drop-shadow(0 2px 3px rgba(0,0,0,.45))">${art[t]}</g><path d="M10 14 C16 8 32 8 38 14" fill="none" stroke="#fff" stroke-opacity=".28" stroke-width="2" stroke-linecap="round"/></svg>`}
 function rankCardH(votes){if(!votes)return '';const r=rankInfo(votes);
- return `<div class="card" onclick="openRanks()" style="display:flex;align-items:center;gap:14px;cursor:pointer">${rankBadge(r.t,64)}<div style="flex:1;min-width:0"><div class="kicker" style="color:var(--ac)">Rango</div><div style="font-size:19px;font-weight:900;margin-top:4px">${esc(r.name)}</div><div class="mu" style="margin:2px 0 8px">${r.n} puntos${r.next?` · faltan ${r.next} pts para subir`:' · rango máximo'}</div><div class="bar"><i style="width:${r.pct}%"></i></div></div></div>`}
+ return `<div class="card rcard" onclick="openRanks()" style="--tc:${rcol(r.t)}"><div class="rbw">${rankBadge(r.t,68)}</div><div style="flex:1;min-width:0"><div class="rtag">Rango · ${RANKS[r.t]}</div><div class="rnm">${esc(r.name)}</div>${rpips(r.sub)}<div class="bar"><i style="width:${r.pct}%"></i></div><div class="rchev"><span>${r.n} pts</span><span>${r.next?`faltan ${r.next} pts ›`:'Rango máximo ›'}</span></div></div></div>`}
 function openRanks(){S.ranksOpen=true;if(!S.myVotes&&S.me){cleanMine().then(v=>{S.myVotes=v;R()}).catch(()=>{})}R()}
 function ranksSheet(){const r=rankInfo(S.myVotes||[]);
  const maxPts=6700;
- const tiers=RANKS.map((nm,t)=>{const out=[];for(let k=0;k<3;k++){const lvlNum=t*3+k+1;const need=lvlNum===1?0:(lvlNum<=15?RANK_TH[lvlNum-2]:maxPts);const ok=r.n>=need;out.push(`<div class="rrow${ok?' ok':''}"><div class="rrank">${nm} ${k+1}</div><div class="rneed">${need} pts</div><div class="rstat">${ok?'✓ Alcanzado':'Pendiente'}</div></div>`)}return `<div class="rtier"><div class="rtop">${rankBadge(t,44)}<b>${nm}</b></div>${out.join('')}</div>`}).join('');
+ const tiers=RANKS.map((nm,t)=>{const out=[];for(let k=0;k<3;k++){const lvlNum=t*3+k+1;const need=lvlNum===1?0:(lvlNum<=15?RANK_TH[lvlNum-2]:maxPts);const ok=r.n>=need;const now=r.lvl===lvlNum-1;const nxt=!ok&&r.lvl===lvlNum-2;out.push(`<div class="rrow${ok?' ok':''}${now?' now':''}${nxt?' nxt':''}"><div class="rrank">${nm} ${k+1}</div><div class="rneed">${need} pts</div><div class="rstat">${now?'★ Tu nivel':ok?'✓ Alcanzado':nxt?'Siguiente':'🔒 Bloqueado'}</div></div>`)}
+  const first=t*3===0?0:RANK_TH[t*3-1],cur=r.t===t,done=r.t>t,lock=r.t<t;
+  return `<div class="rtier${cur?' cur':''}${lock?' lock':''}" style="--tc:${rcol(t)}"><div class="rtop">${rankBadge(t,44)}<b>${nm}</b><div class="rtsub"><i>${done?'Completado':cur?'En curso':'Bloqueado'}</i>desde ${first} pts</div></div>${out.join('')}</div>`}).join('');
  const pct=Math.min(Math.round(r.n/maxPts*100),100);
- return `<div class="ov" onclick="S.ranksOpen=false;R()"><div class="sh" onclick="event.stopPropagation()"><div class="rank-header"><div class="rank-badge-big">${rankBadge(r.t,96)}</div><div class="rank-info"><div class="rank-title">Tu rango</div><div class="rank-name">${esc(r.name)}</div><div class="rank-points">${r.n} <span class="mu">puntos totales</span></div><div class="rank-progress-text">${r.next?`Faltan ${r.next} pts para el siguiente nivel`:'Has alcanzado el rango máximo'}</div></div></div><div class="rank-bar-container"><div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${pct}%"></div></div></div><div style="max-height:50vh;overflow:auto">${tiers}</div><div class="mu" style="margin-top:8px;text-align:center">Para llegar a <b>Elite 3</b> necesitas <b>6700 puntos</b> en total votando batallas de liga.</div></div></div>`}
+ const done=r.lvl+1;
+ return `<div class="ov" onclick="S.ranksOpen=false;R()"><div class="sh" onclick="event.stopPropagation()" style="--tc:${rcol(r.t)}"><div class="rank-header"><div class="rank-badge-big">${rankBadge(r.t,96)}</div><div class="rank-info"><div class="rank-title">Tu rango</div><div class="rank-name">${esc(r.name)}</div>${rpips(r.sub)}<div class="rank-points">${r.n} <span class="mu">puntos totales</span></div><div class="rank-progress-text">${r.next?`Faltan ${r.next} pts para el siguiente nivel`:'Has alcanzado el rango máximo'}</div></div></div><div class="rank-bar-container"><div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${pct}%"></div></div><div class="rbar-lbl"><span><b>${r.n}</b> pts</span><span>Meta: <b>${maxPts}</b> pts · ${pct}%</span></div></div><div class="rank-foot2"><div><b>${done}/15</b>Niveles</div><div><b>${r.t+1}/5</b>Rango</div><div><b>${r.pct}%</b>Nivel actual</div></div><div style="max-height:46vh;overflow:auto;margin-top:12px;display:grid;gap:10px">${tiers}</div><div class="mu" style="margin-top:10px;text-align:center">Para llegar a <b>Elite 3</b> necesitas <b>6700 puntos</b> en total votando batallas de liga.</div></div></div>`}
 const bkey=v=>(v.free?'libre':v.l)+'|'+(v.temp||'2026')+'|'+[nrm(v.a),nrm(v.b)].sort().join('|');
 function splitDups(list){const seen=new Set(),keep=[],dups=[];[...(list||[])].sort((a,b)=>(a.ts||0)-(b.ts||0)).forEach(v=>{if(v.free){keep.push(v);return}const k=bkey(v);if(seen.has(k)){dups.push(v)}else{seen.add(k);keep.push(v)}});keep.sort((a,b)=>(b.ts||0)-(a.ts||0));return {keep,dups}}
 async function cleanMine(){const all=await B.votesOfUser(S.me.uid);const r=splitDups(all);for(const d of r.dups){try{if(d.id)await B.deleteVote(d.id)}catch(e){}}return r.keep}
