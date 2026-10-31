@@ -230,26 +230,35 @@ img.av{width:38px;height:38px;border-radius:50%;object-fit:cover;display:block;p
 img.av.lg{width:76px;height:76px;border:3px solid rgba(255,255,255,.25)}
 .fotobtn{display:flex;justify-content:center;align-items:center;cursor:pointer;margin-bottom:14px}
 .or:before,.or:after{content:"";flex:1;height:1px;background:var(--bd)}
-/* Rango visual mejorado */
-.rank-header{display:flex;align-items:center;gap:14px;margin-bottom:14px;padding:12px;background:linear-gradient(135deg,rgba(234,179,8,.15),rgba(77,163,255,.1));border-radius:20px;border:1px solid rgba(234,179,8,.3)}
-.rank-badge-big{flex:0 0 auto}
+/* Rango visual mejorado - Diseño premium */
+.rank-header{display:flex;align-items:center;gap:16px;margin-bottom:16px;padding:16px;background:linear-gradient(135deg,rgba(234,179,8,.18),rgba(77,163,255,.12));border-radius:24px;border:1px solid rgba(234,179,8,.35);position:relative;overflow:hidden}
+.rank-header::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--ac),var(--ac2),var(--b2))}
+.rank-badge-big{flex:0 0 auto;filter:drop-shadow(0 8px 24px rgba(234,179,8,.4))}
 .rank-info{flex:1;min-width:0}
-.rank-title{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--mu);margin-bottom:4px}
-.rank-name{font-size:24px;font-weight:900;margin:0 0 4px;color:var(--tx)}
-.rank-points{font-size:15px;font-weight:800;color:var(--ac);margin:0 0 6px}
-.rank-progress-text{font-size:12px;color:var(--mu);margin:0}
-.rank-bar-container{margin-top:10px}
-.rank-bar-bg{height:10px;border-radius:999px;background:var(--bd);overflow:hidden}
-.rank-bar-fill{height:100%;background:linear-gradient(90deg,var(--ac),var(--ac2));border-radius:999px;transition:width .5s ease}
-.rtier{margin-bottom:10px}
-.rtop{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.rtop b{font-size:15px;font-weight:900}
-.rrow{display:flex;justify-content:space-between;padding:8px 12px;border-radius:14px;background:var(--bg2);border:1px solid var(--bd);margin-bottom:6px;color:var(--tx)}
-.rrank{font-weight:800}
-.rneed{font-weight:700;color:var(--ac)}
-.rstat{font-size:11px;font-weight:700}
-.rrow.ok .rstat{color:var(--b2)}
+.rank-title{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu);margin-bottom:6px}
+.rank-name{font-size:28px;font-weight:900;margin:0 0 8px;color:var(--tx);background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.rank-points{font-size:16px;font-weight:800;color:var(--ac);margin:0 0 8px;display:flex;align-items:center;gap:6px}
+.rank-points::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ac);box-shadow:0 0 12px var(--ac)}
+.rank-progress-text{font-size:13px;color:var(--mu);margin:0;font-weight:600}
+.rank-bar-container{margin-top:12px}
+.rank-bar-bg{height:12px;border-radius:999px;background:linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.1));overflow:hidden;box-shadow:inset 0 2px 6px rgba(0,0,0,.3)}
+.rank-bar-fill{height:100%;background:linear-gradient(90deg,var(--ac),var(--ac2),var(--b2));border-radius:999px;transition:width .8s cubic-bezier(.4,0,.2,1);position:relative}
+.rank-bar-fill::after{content:"";position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:shimmer 2s infinite}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.rtier{margin-bottom:12px}
+.rtop{display:flex;align-items:center;gap:12px;margin-bottom:10px;padding:8px 12px;background:linear-gradient(90deg,rgba(234,179,8,.08),transparent);border-radius:14px;border-left:3px solid var(--ac)}
+.rtop b{font-size:16px;font-weight:900;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.rrow{display:flex;justify-content:space-between;padding:10px 14px;border-radius:16px;background:linear-gradient(135deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.05);margin-bottom:6px;color:var(--tx);transition:all .2s ease}
+.rrow:hover{background:linear-gradient(135deg,rgba(234,179,8,.08),rgba(234,179,8,.02));border-color:rgba(234,179,8,.2);transform:translateX(4px)}
+.rrank{font-weight:800;display:flex;align-items:center;gap:8px}
+.rrank::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--bd);flex-shrink:0}
+.rrow.ok .rrank::before{background:var(--ac);box-shadow:0 0 8px var(--ac)}
+.rneed{font-weight:700;color:var(--ac);font-variant-numeric:tabular-nums}
+.rstat{font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.05)}
+.rrow.ok .rstat{background:linear-gradient(90deg,rgba(234,179,8,.2),rgba(77,163,255,.2));color:var(--b2);box-shadow:0 0 12px rgba(77,163,255,.3)}
 .rstat{color:var(--mu)}
+.rank-footer{margin-top:14px;padding:12px;background:rgba(234,179,8,.08);border-radius:16px;border:1px solid rgba(234,179,8,.2);text-align:center}
+.rank-footer strong{background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
 </style></head>
 <body>
 <header class="top" id="top"></header>
@@ -274,7 +283,7 @@ const RF={
  es:[{n:'Easy · Hard',p:[{t:'Easy Mode',c:6},{t:'Hard Mode',c:6,rv:1}]},{n:'Temáticas',p:[{t:'Primera Temática',c:4},{t:'Segunda Temática',c:4}]},{n:'Random',p:[{c:8}]},{n:'Minutos a sangre',p:[{t:'Minuto 1',c:6},{t:'Minuto 2',c:6}]},{n:'Deluxe',p:[{c:11}]}],
  std:[{n:'Easy',p:[{c:6}]},{n:'Hard',p:[{c:6,rv:1}]},{n:'Random',p:[{c:8}]},{n:'Minutos a sangre',p:[{t:'Minuto 1',c:6},{t:'Minuto 2',c:6}]},{n:'Deluxe',p:[{c:11}]}],
  ws:[{n:'Easy',p:[{c:6}]},{n:'Hard',p:[{c:6,rv:1}]},{n:'Random',p:[{c:8}]},{n:'Deluxe',p:[{c:11}]}]};
-const LINEUP={"es": ["Ibán", "Gazir", "Arkano", "Sweet Pain", "Babi", "Bélico", "Navas", "Sara Socas", "Marithea", "El Menor"], "ar": ["Mecha", "Larrix", "Replik", "Exe", "Sophia", "Facu HDR", "Dybbuk", "Abel", "Rife", "Tobi"], "mx": ["Jony Beltrán", "Azuky", "Lobo Estepario", "Rapder", "Nota Roja", "Xhavez", "Chuty", "Kodigo", "Dalia Castella", "Skone"], "cl": ["Kaiser", "Nitro", "Teorema", "Stuart", "Fusok", "Drose", "Destello", "BTI", "Animus", "Metalingüística"], "co": ["Aczino", "Valles-T", "Éxodo Lirical", "Fat N", "Filósofo", "Pandora", "Reverse", "Dima", "Puppy", "Visionario"]};
+const LINEUP={"es": ["Ibán", "Gazir", "Arkano", "Sweet Pain", "Babi", "Bélico", "Navas", "Sara Socas", "Marithea", "El Menor"], "ar": ["Mecha", "Larrix", "Replik", "Exe", "Sophia", "Facu HDR", "Dybbuk", "Abel", "Rife", "Tobi"], "mx": ["Jony Beltrán", "Azuky", "Lobo Estepario", "Rapder", "Nota Roja", "Xhavez", "Chuty", "Kodigo", "Dalia Castella", "Skone"], "pe": ["Jaze", "Nekroos", "Stick", "Jota", "Skill", "New Era", "Litzen", "Strike", "Ramset", "Choque"], "cl": ["Kaiser", "Nitro", "Teorema", "Stuart", "Fusok", "Drose", "Destello", "BTI", "Animus", "Metalingüística"], "co": ["Aczino", "Valles-T", "Éxodo Lirical", "Fat N", "Filósofo", "Pandora", "Reverse", "Dima", "Puppy", "Visionario"]};
 const HIDDEN_LIGAS=['ca','ws'];
 RF.libre=[{n:'Easy · Hard',p:[{t:'Easy Mode',c:6},{t:'Hard Mode',c:6,rv:1}]},{n:'Temáticas',p:[{t:'Primera Temática',c:4},{t:'Segunda Temática',c:4}]},{n:'Random',p:[{c:8}]},{n:'Minutos a sangre',p:[{t:'Minuto 1',c:6},{t:'Minuto 2',c:6}]},{n:'Acapela',p:[{t:'Acapela',c:1,max:4}]},{n:'Deluxe',p:[{c:11}]}];
 const S17=[
@@ -508,7 +517,7 @@ function voteRes(v){
  if(fa!==fb)return {w:fa>fb?'a':'b',k:'r'};
  return {w:null,k:null};
 }
-const COMUN=['es','ar','mx','cl','co'];
+const COMUN=['es','ar','mx','cl','co','pe'];
 function standings(lg,votes,temp){
  const names=seasonLineup(lg,temp);const idx={};names.forEach(n=>idx[nrm(n)]=n);
  const T={};names.forEach(n=>T[n]={n,pts:0,w:0,l:0,ptb:0});
@@ -604,12 +613,13 @@ const S20es=[{n:1,fecha:'Fecha por confirmar',ciudad:'',b:[['Blon','Sweet Pain']
 const S20ar=[{n:1,fecha:'Fecha por confirmar',ciudad:'',b:[['Mecha','Klan'],['Stuart','Nacho'],['Dtoke','Wolf'],['Papo','Sub'],['MKS','Cacha']]},{n:2,fecha:'Fecha por confirmar',ciudad:'',b:[['Dtoke','Sub'],['Stuart','Mecha'],['MKS','Nacho'],['Wolf','Cacha'],['Papo','Klan'],['Zaina','Tiago',true]]},{n:3,fecha:'Fecha por confirmar',ciudad:'',b:[['Stuart','Klan'],['Cacha','Mecha'],['Papo','MKS'],['Wolf','Sub'],['Dtoke','Nacho']]},{n:4,fecha:'Fecha por confirmar',ciudad:'',b:[['Mecha','Nacho'],['Sub','Stuart'],['Papo','Wolf'],['MKS','Dtoke'],['Cacha','Klan'],['MKS','MP',true]]},{n:5,fecha:'Fecha por confirmar',ciudad:'',b:[['Wolf','Stuart'],['MKS','Klan'],['Papo','Nacho'],['Cacha','Sub'],['Mecha','Dtoke'],['Nacho','Naista',true],['Lit Killah','G Sony',true]]},{n:6,fecha:'Fecha por confirmar',ciudad:'',b:[['Mecha','Wolf'],['Stuart','MKS'],['Sub','Klan'],['Papo','Dtoke'],['Cacha','Nacho']]},{n:7,fecha:'Fecha por confirmar',ciudad:'',b:[['MKS','Sub'],['Dtoke','Klan'],['Stuart','Cacha'],['Wolf','Nacho'],['Papo','Mecha']]},{n:8,fecha:'Fecha por confirmar',ciudad:'',b:[['Papo','Stuart'],['Klan','Wolf'],['Sub','Nacho'],['Mecha','MKS'],['Dtoke','Cacha']]},{n:9,fecha:'Fecha por confirmar',ciudad:'',b:[['MKS','Wolf'],['Mecha','Sub'],['Nacho','Klan'],['Stuart','Dtoke'],['Papo','Cacha']]}];
 const S20cl=[{n:1,fecha:'Fecha por confirmar',ciudad:'',b:[['Nitro','Esezeta'],['Joqerr','Teorema'],['Acertijo','Ricto'],['El Menor','Pepe Grillo'],['Jokker','Tom Crowley']]},{n:2,fecha:'Fecha por confirmar',ciudad:'',b:[['Ricto','Teorema'],['Nitro','Joqerr'],['Esezeta','El Menor'],['Pepe Grillo','Tom Crowley'],['Acertijo','Jokker']]},{n:3,fecha:'Fecha por confirmar',ciudad:'',b:[['Pepe Grillo','Jokker'],['Joqerr','Acertijo'],['Nitro','El Menor'],['Tom Crowley','Ricto'],['Esezeta','Teorema']]},{n:4,fecha:'Fecha por confirmar',ciudad:'',b:[['Nitro','Jokker'],['Esezeta','Ricto'],['Joqerr','El Menor'],['Tom Crowley','Acertijo'],['Pepe Grillo','Teorema']]},{n:5,fecha:'Fecha por confirmar',ciudad:'',b:[['Joqerr','Ricto'],['Acertijo','El Menor'],['Teorema','Tom Crowley'],['Jokker','Esezeta'],['Nitro','Pepe Grillo'],['Jno','Metalingüística',true]]},{n:6,fecha:'Fecha por confirmar',ciudad:'',b:[['Jokker','Joqerr'],['Pepe Grillo','Esezeta'],['Tom Crowley','Nitro'],['Ricto','El Menor'],['Acertijo','Teorema']]},{n:7,fecha:'Fecha por confirmar',ciudad:'',b:[['Tom Crowley','El Menor'],['Ricto','Nitro'],['Acertijo','Pepe Grillo'],['Teorema','Jokker'],['Joqerr','Esezeta']]},{n:8,fecha:'Fecha por confirmar',ciudad:'',b:[['Joqerr','Tom Crowley'],['Pepe Grillo','Ricto'],['Teorema','Nitro'],['Esezeta','Acertijo'],['Jokker','El Menor']]},{n:9,fecha:'Fecha por confirmar',ciudad:'',b:[['El Menor','Teorema'],['Esezeta','Tom Crowley'],['Jokker','Ricto'],['Joqerr','Pepe Grillo'],['Nitro','Acertijo']]}];
 const S20mx=[{n:1,fecha:'Fecha por confirmar',ciudad:'',b:[['Rapder','Skiper'],['Potencia','RC'],['Zticma','Yoiker'],['Garza','Lobo Estepario'],['B-One','Jony Beltrán']]},{n:2,fecha:'Fecha por confirmar',ciudad:'',b:[['Pote','Garza'],['Jony','Zticma'],['Lobo','Skiper'],['Rapder','Yoiker'],['RC','B-One']]},{n:3,fecha:'Fecha por confirmar',ciudad:'',b:[['Garza','B-One'],['Rapder','Zticma'],['Lobo','Potencia'],['Skiper','Jony Beltrán'],['RC','Yoiker']]},{n:4,fecha:'Fecha por confirmar',ciudad:'',b:[['Jony B.','Potencia'],['Zticma','RC'],['B-One','Lobo'],['Rapder','Garza'],['Skiper','Yoiker'],['RC','Ari Carrillo',true]]},{n:5,fecha:'Fecha por confirmar',ciudad:'',b:[['B-One','Skiper'],['Zticma','Lobo Estepario'],['Potencia','Rapder'],['Jony Beltrán','RC'],['Yoiker','Garza']]},{n:6,fecha:'Fecha por confirmar',ciudad:'',b:[['Jony','Garza'],['Skiper','RC'],['Yoiker','Potencia'],['Rapder','Lobo'],['B-One','Zticma'],['Red One','Lancer Lirical',true]]},{n:7,fecha:'Fecha por confirmar',ciudad:'',b:[['Skiper','Potencia'],['Garza','Zticma'],['Jony','Lobo Estepario'],['B-One','Yoiker'],['Rapder','RC'],['Rapder','More',true]]},{n:8,fecha:'Fecha por confirmar',ciudad:'',b:[['Lobo','Yoiker'],['Garza','RC'],['Jony','Rapder'],['B-One','Potencia'],['Skiper','Zticma']]},{n:9,fecha:'Fecha por confirmar',ciudad:'',b:[['Yoiker','Jony Beltrán'],['Skiper','Garza'],['Zticma','Potencia'],['Rapder','B-One'],['Lobo Estepario','RC']]}];
-const S20pe=[{n:1,fecha:'Fecha por confirmar',ciudad:'',b:[['Jota','Jaze'],['Skill','Choque'],['Nekroos','New Era'],['Strike','Litzen'],['Stick','Ramset'],['Enzo','Zika',true]]},{n:2,fecha:'Fecha por confirmar',ciudad:'',b:[['Nekroos','Stick'],['Jota','Litzen'],['New Era','Choque'],['Jaze','Strike'],['Skill','Ramset'],['Diego MC','Piero Pistas',true]]},{n:3,fecha:'Fecha por confirmar',ciudad:'',b:[['Jaze','Choque'],['Stick','Litzen'],['Jota','Skill'],['Nekroos','Ramset'],['New Era','Strike']]},{n:4,fecha:'Fecha por confirmar',ciudad:'',b:[['Nekroos','Litzen'],['Jaze','Ramset'],['New Era','Stick'],['Jota','Choque'],['Skill','Strike']]},{n:5,fecha:'Fecha por confirmar',ciudad:'',b:[['Jaze','Stick'],['New Era','Skill'],['Nekroos','Choque'],['Ramset','Litzen'],['Jota','Strike']]},{n:6,fecha:'Fecha por confirmar',ciudad:'',b:[['Jota','Stick'],['Nekroos','Strike'],['Skill','Litzen'],['Jaze','New Era'],['Ramset','Choque']]},{n:7,fecha:'Fecha por confirmar',ciudad:'',b:[['Litzen','Jaze'],['Ramset','Strike'],['Skill','Nekroos'],['New Era','Jota'],['Stick','Choque']]},{n:8,fecha:'Fecha por confirmar',ciudad:'',b:[['Litzen','Choque'],['Jota','Nekroos'],['Stick','Strike'],['New Era','Ramset'],['Skill','Jaze']]},{n:9,fecha:'Fecha por confirmar',ciudad:'',b:[['Stick','Skill'],['Jota','Ramset'],['Litzen','New Era'],['Choque','Strike'],['Jaze','Nekroos'],['Jair Wong','Diego MC',true]] }];
+const S20pe=[{n:1,fecha:'Fecha por confirmar',ciudad:'',b:[['Jota','Jaze'],['Skill','Choque'],['Nekroos','New Era'],['Strike','Litzen'],['Stick','Ramset'],['Enzo','Zika',true]]},{n:2,fecha:'Fecha por confirmar',ciudad:'',b:[['Nekroos','Stick'],['Jota','Litzen'],['New Era','Choque'],['Jaze','Strike'],['Skill','Ramset'],['Diego MC','Piero Pistas',true]]},{n:3,fecha:'Fecha por confirmar',ciudad:'',b:[['Jaze','Choque'],['Stick','Litzen'],['Jota','Skill'],['Nekroos','Ramset'],['New Era','Strike']]},{n:4,fecha:'Fecha por confirmar',ciudad:'',b:[['Nekroos','Litzen'],['Jaze','Ramset'],['New Era','Stick'],['Jota','Choque'],['Skill','Strike']]},{n:5,fecha:'Fecha por confirmar',ciudad:'',b:[['Jaze','Stick'],['New Era','Skill'],['Nekroos','Choque'],['Ramset','Litzen'],['Jota','Strike']]},{n:6,fecha:'Fecha por confirmar',ciudad:'',b:[['Jota','Stick'],['Nekroos','Strike'],['Skill','Litzen'],['Jaze','New Era'],['Ramset','Choque']]},{n:7,fecha:'Fecha por confirmar',ciudad:'',b:[['Litzen','Jaze'],['Ramset','Strike'],['Skill','Nekroos'],['New Era','Jota'],['Stick','Choque']]},{n:8,fecha:'Fecha por confirmar',ciudad:'',b:[['Litzen','Choque'],['Jota','Nekroos'],['Stick','Strike'],['New Era','Ramset'],['Skill','Jaze']]},{n:9,fecha:'Fecha por confirmar',ciudad:'',b:[['Stick','Skill'],['Jota','Ramset'],['Litzen','New Era'],['Choque','Strike'],['Jaze','Nekroos'],['Jair Wong','Diego MC',true]]}];
+
 const S20in=[{lab:'Octavos de Final',fecha:'',ciudad:'',b:[['Acertijo','Gazir'],['RC','Yoiker'],['Pepe Grillo','Mnak'],['Aczino','Papo'],['Sweet Pain','Nacho'],['Tirpa','Nitro'],['Zasko','Wolf'],['Skiper','Mecha']]},{lab:'Cuartos de Final',fecha:'',ciudad:'',b:[['Tirpa','Wolf'],['Aczino','Mecha'],['RC','Mnak'],['Nacho','Gazir']]},{lab:'Semifinales',fecha:'',ciudad:'',b:[['Tirpa','Aczino'],['RC','Gazir']]},{lab:'Final',fecha:'',ciudad:'',b:[['Tirpa','Gazir']]}];
 const LINEUP20={es:['Blon','Gazir','Sweet Pain','Mr. Ego','Bnet','Khan','Tirpa','Zasko','Mnak','Errecé'],ar:['Mecha','Stuart','Dtoke','Papo','MKS','Cacha','Klan','Nacho','Wolf','Sub'],cl:['Nitro','Teorema','Acertijo','El Menor','Jokker','Joqerr','Ricto','Pepe Grillo','Tom Crowley','Esezeta'],mx:['Rapder','Potencia','Zticma','Garza','Lobo Estepario','B-One','Jony Beltrán','Skiper','RC','Yoiker'],pe:['Jaze','Nekroos','Stick','Jota','Skill','New Era','Litzen','Strike','Ramset','Choque'],in:['Aczino','Gazir','Tirpa','RC','Zasko','Nacho','Acertijo','Yoiker','Pepe Grillo','Mnak']};
-const SEASON_OPTS={es:[['2020','Temporada 2020'],['2019','Temporada 2019'],['2018','Temporada 2018'],['2017','Temporada 2017']],ar:[['2020','Temporada 2020'],['2019','Temporada 2019'],['2018','Temporada 2018']],cl:[['2020','Temporada 2020'],['2019','Temporada 2019']],mx:[['2020','Temporada 2020'],['2019','Temporada 2019']],pe:[['2020','Temporada 2020']],in:[['2020','Temporada 2020/21'],['2019','Temporada 2019']]};
+const SEASON_OPTS={es:[['2020','Temporada 2020'],['2019','Temporada 2019'],['2018','Temporada 2018'],['2017','Temporada 2017']],ar:[['2020','Temporada 2020'],['2019','Temporada 2019'],['2018','Temporada 2018']],pe:[['2020','Temporada 2020']],cl:[['2020','Temporada 2020'],['2019','Temporada 2019']],mx:[['2020','Temporada 2020'],['2019','Temporada 2019']],in:[['2020','Temporada 2020/21'],['2019','Temporada 2019']]};
 
-const SEASON_JOR={'es|2020':S20es,'es|2017':S17,'es|2018':S18es,'ar|2020':S20ar,'ar|2018':S18ar,'es|2019':S19es,'ar|2019':S19ar,'cl|2020':S20cl,'cl|2019':S19cl,'mx|2020':S20mx,'mx|2019':S19mx,'pe|2020':S20pe,'in|2020':S20in,'in|2019':S19in};
+const SEASON_JOR={'es|2020':S20es,'es|2017':S17,'es|2018':S18es,'ar|2020':S20ar,'ar|2018':S18ar,'es|2019':S19es,'ar|2019':S19ar,'pe|2020':S20pe,'cl|2020':S20cl,'cl|2019':S19cl,'mx|2020':S20mx,'mx|2019':S19mx,'in|2020':S20in,'in|2019':S19in};
 function seasonLineup(lg,temp){if(temp==='2019')return LINE19[lg]||[];if(temp==='2017'&&lg==='es')return LINEUP17;if(temp==='2018')return lg==='es'?LINEUP18es:LINEUP18ar;if(temp==='2020')return LINEUP20[lg]||LINEUP[lg]||[];return LINEUP[lg]||[]}
 function curSeason(lg){const x=S.season;const opts=SEASON_OPTS[lg]||[];return opts.some(o=>o[0]===x)?x:(opts.length?opts[0][0]:'2026')}
 function linkKey(lg,temp,a,b){return (lg==='es'&&temp==='2017')?'2017|'+a+'|'+b:temp+'|'+lg+'|'+a+'|'+b}
@@ -617,7 +627,7 @@ function jorV(lg,season){const J=SEASON_JOR[lg+'|'+season]||[];return J.map((j,j
 function startSeasonBat(lg,season,ji,bi){const J=SEASON_JOR[lg+'|'+season],j=J[ji],b=j.b[bi];S.lg=lg;S.season=season;
  const tn=season==='2017'?'Temporada 2017':season==='2018'?'Temporada 2018':'Temporada 2019';
  start({a:b[0],b:b[1],j:L.find(x=>x.i===lg).n+' · '+tn+' · '+(j.lab||('Jornada '+j.n))+(b[2]==='apl'?' · Aplazada':b[2]?' · Exhibición':''),y:(S.links||{})[linkKey(lg,season,b[0],b[1])]||null,temp:season})}
-function seasonSel(lg){const cur=curSeason(lg);return `<div class="card" style="margin-bottom:12px"><b>Temporada</b><select style="margin-top:8px" onchange="S.season=this.value;VKEY=null;S.lgVotes=null;R();loadFor('lg')"><option value="2026" ${cur==='2026'?'selected':''}>Temporada 2026</option>${SEASON_OPTS[lg].map(o=>`<option value="${o[0]}" ${cur===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div>`}
+function seasonSel(lg){const cur=curSeason(lg);return `<div class="card" style="margin-bottom:12px"><b>Temporada</b><select style="margin-top:8px" onchange="S.season=this.value;VKEY=null;S.lgVotes=null;R();loadFor('lg')">${SEASON_OPTS[lg].map(o=>`<option value="${o[0]}" ${cur===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div>`}
 function startScreenV(b,l){const f=S.first||0;const [a1,a2]=accentOf(l);
  return `<div class="lgwrap" style="--ac:${a1};--ac2:${a2};--lc:${l.c}"><button class="back" onclick="go('${S.libre?'libre':'lg'}')">${ico('back',18)} ${S.libre?'Batalla libre':esc(l.n)}</button>
  <div class="card" style="text-align:center;padding:22px 16px"><div class="mu">Antes de empezar</div><div style="font-size:21px;font-weight:900;margin:4px 0 16px">¿Quién empieza?</div>
@@ -1025,4 +1035,5 @@ async function init(){
 init();
 
 </script></body></html>
+
 
