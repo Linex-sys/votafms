@@ -344,11 +344,11 @@ function crow(x){const sc=x.sa!=null,left=sc&&x.sa>x.sb,right=sc&&x.sb>x.sa;retu
 function go(v){S.v=v;if(v==='lg')S.lgVotes=null;if(v==='comunidad')S.comm5=null;window.scrollTo(0,0);if(v==='perfil')S.myVotes=S.me?null:[];if(v==='search')S.users=null;if(v==='user'){S.uProf=null;S.uVotes=null}R();loadFor(v)}
 async function loadFor(v){
  try{
-  if(v==='perfil'&&S.me){S.myVotes=await B.votesOfUser(S.me.uid);await refreshFriends();R()}
+  if(v==='perfil'&&S.me){S.myVotes=await cleanMine();await refreshFriends();R()}
   else if(v==='comunidad'){const arr=await Promise.all(COMUN.map(id=>B.votesOfLeague(id)));S.comm5={};COMUN.forEach((id,i)=>S.comm5[id]=arr[i]);R()}
-  else if(v==='lg'&&LINEUP[S.lg]){const mine=S.me?await B.votesOfUser(S.me.uid):[];const tv=curSeason(S.lg);S.lgVotes=mine.filter(x=>x.l===S.lg&&(x.temp||'2026')===tv);if(tv!=='2026')S.links=await B.getLinks();R()}
+  else if(v==='lg'&&LINEUP[S.lg]){const mine=S.me?await cleanMine():[];const tv=curSeason(S.lg);S.lgVotes=mine.filter(x=>x.l===S.lg&&(x.temp||'2026')===tv);if(tv!=='2026')S.links=await B.getLinks();R()}
   else if(v==='search'){S.users=await B.listUsers();await refreshFriends();R()}
-  else if(v==='user'){await refreshFriends();const p=await B.getUser(S.uid);S.uProf=p?pub(p):{u:'?',p:'',m:'',a:'',joined:''};const canSee=(S.me&&S.me.uid===S.uid)||isFriend(S.uid);S.uVotes=canSee?await B.votesOfUser(S.uid):[];R()}
+  else if(v==='user'){await refreshFriends();const p=await B.getUser(S.uid);S.uProf=p?pub(p):{u:'?',p:'',m:'',a:'',joined:''};const canSee=(S.me&&S.me.uid===S.uid)||isFriend(S.uid);S.uVotes=canSee?splitDups(await B.votesOfUser(S.uid)).keep:[];R()}
  }catch(e){if(v==='perfil')S.myVotes=[];if(v==='search')S.users=[];if(v==='user'){S.uVotes=[];S.uProf=S.uProf||{u:'?',p:'',m:'',a:'',joined:''}}R()}
 }
 S.fr=[];
@@ -593,7 +593,7 @@ function startScreenV(b,l){const f=S.first||0;const [a1,a2]=accentOf(l);
 function confirmFirst(){S.firstSet=true;R();window.scrollTo(0,0)}
 function startBat(ci,bi){const e=CAL[ci];const b=batOf(e,e.b[bi]);start({a:b.a,b:b.b,j:b.j,y:b.y||null})}
 function ytGo(){const m=(S.yt||'').match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/);if(!m){S.err='Ese link no parece de YouTube. Prueba con otro.';return R()}S.err='';start({a:S.na.trim()||'MC 1',b:S.nb.trim()||'MC 2',j:'Batalla por link',y:m[1]})}
-function start(b){const l=curL();S.bt=b;S.libre=!!b.libre;S.temp=b.temp||'2026';S.first=b.first||0;S.firstSet=false;S.editId=null;const exK=(S.libre?'libre':S.lg)+'|'+b.a+'|'+b.b;const exV=(S.myVotes||[]).find(x=>x.key===exK&&x.sc);if(exV)return startEdit(exV);S.ri=0;S.pi=0;S.rep=null;S.rounds=fmtRounds(S.fmt||'antigua',l);S.sc=S.rounds.map(rd=>[Array(szOf(rd)).fill(null),Array(szOf(rd)).fill(null)]);S.v='vote';R();window.scrollTo(0,0)}
+function start(b){const l=curL();S.bt=b;S.libre=!!b.libre;S.temp=b.temp||'2026';S.first=b.first||0;S.firstSet=false;S.editId=null;const exV=S.libre?null:(S.myVotes||[]).find(x=>!x.free&&bkey(x)===bkey({l:S.lg,temp:S.temp,a:b.a,b:b.b}));if(exV)return startEdit(exV);S.ri=0;S.pi=0;S.rep=null;S.rounds=fmtRounds(S.fmt||'antigua',l);S.sc=S.rounds.map(rd=>[Array(szOf(rd)).fill(null),Array(szOf(rd)).fill(null)]);S.v='vote';R();window.scrollTo(0,0)}
 function sumR(k,m){return sum(S.sc[k][m])}
 function tot(m){return S.rounds.reduce((a,_,k)=>a+sumR(k,m),0)}
 function mainTot(m){return S.rounds.reduce((a,rd,k)=>a+(rd.rep?0:sumR(k,m)),0)}
@@ -677,18 +677,19 @@ function buildVote(){const act=S.fmt==='actual';const a=act?mainTot(0):counted(0
  return {l:S.lg,a:S.bt.a,b:S.bt.b,ta:a,tb:b,rows,date:today(),free:!!S.libre,j:S.bt.j||'',y:S.bt.y||null,rep:S.rep||'none',fmt:act?'actual':'antigua',temp:S.temp||'2026',first:S.first||0,sc:S.sc.map(p=>({a:p[0],b:p[1]}))}}
 function summ(rows){let wa=0,wb=0,sa=0,sb=0;rows.forEach(r=>{sa+=r.ta;sb+=r.tb;if(r.ta>r.tb)wa++;else if(r.tb>r.ta)wb++});return {n:rows.length,wa,wb,sa,sb}}
 async function saveVote(){const v=buildVote();if(!S.me){S.pend=v;return openAuth('create')}await pushVote(v)}
-async function pushVote(v){
+async function pushVote(v){if(S.saving)return;S.saving=true;try{await pushVote2(v)}finally{S.saving=false}}
+async function pushVote2(v){
  v.uid=S.me.uid;v.u=S.me.u;v.key=ck(v.free?'libre':v.l,v.a,v.b);v.ts=Date.now();
  let c={n:0,wa:0,wb:0};try{c=summ(await B.votesKey(v.key))}catch(e){}
  const cw=c.wa>=c.wb?0:1,uw=v.ta===v.tb?-1:(v.ta>v.tb?0:1);
  v.msg=uw<0?'Empate':c.n===0?'Primer voto de esta batalla':uw===cw?'Coincide con la mayoría':'Votaste distinto a la mayoría';
- try{const mine=await B.votesOfUser(S.me.uid);const ex=S.editId||((mine.find(x=>x.key===v.key)||{}).id);if(ex){await B.updateVote(ex,v)}else{await B.addVote(v)}}catch(e){S.msgP='No se pudo guardar tu voto. Revisa tu conexión y las reglas de Firestore.';R();return}
+ try{const mine=await B.votesOfUser(S.me.uid);let ex=S.editId;S.dupNote='';if(!v.free){const f=mine.filter(x=>!x.free&&bkey(x)===bkey(v)).sort((a,b)=>(a.ts||0)-(b.ts||0))[0];if(f&&f.id!==ex){ex=f.id;S.dupNote='Ya habías votado esta batalla, así que se actualizó ese voto. Para votarla otra vez, usa Batalla libre.'}}if(ex){await B.updateVote(ex,v)}else{await B.addVote(v)}}catch(e){S.msgP='No se pudo guardar tu voto. Revisa tu conexión y las reglas de Firestore.';R();return}
  notifyFriends(v);S.last=v;S.editId=null;S.v='res';S.comm=null;refreshMine();R();window.scrollTo(0,0);
  try{S.comm=summ(await B.votesKey(v.key))}catch(e){S.comm={n:0,wa:0,wb:0,sa:0,sb:0}}
  R();
 }
 function resV(){const v=S.last;if(!v)return homeV();const c=S.comm;const tw=c?c.wa+c.wb:0;const pa=tw?Math.round(c.wa/tw*100):50;
- return `<div class="ok">Voto guardado en tu perfil</div>
+ return `<div class="ok">${S.dupNote?esc(S.dupNote):'Voto guardado en tu perfil'}</div>
  <div class="card"><b>Resultados de la comunidad</b>${c?`<div class="row" style="justify-content:space-between;margin-top:10px"><b style="color:var(--ac)">${esc(v.a)} ${tw?pa:'–'}%</b><b style="color:var(--b2)">${tw?100-pa:'–'}% ${esc(v.b)}</b></div><div class="bar"><i style="width:${pa}%"></i></div><div class="mu">${c.n} ${c.n===1?'voto':'votos'} en esta batalla</div>`:'<div class="mu" style="margin-top:8px">Cargando resultados…</div>'}</div>
  ${c&&c.n?`<div class="stats"><div class="stat"><big>${fmt(Math.round(c.sa/c.n*10)/10)}</big><span>Media de ${esc(v.a)}</span></div><div class="stat"><big>${fmt(Math.round(c.sb/c.n*10)/10)}</big><span>Media de ${esc(v.b)}</span></div></div>`:''}
  <div class="card" style="margin-top:12px"><b>Tu voto</b><div class="mu" style="margin-top:4px">${fmt(v.ta)} – ${fmt(v.tb)} · ${esc(v.msg||'')}</div></div>
@@ -839,7 +840,7 @@ function lbStart(){const B2=S.lb;const a=B2.a.trim(),b=B2.b.trim();
  B2.err='';S.lg=B2.lg;start({a,b,j:'Batalla libre',y,libre:true})}
 
 function myVoteOf(lg,x){const key=lg+'|'+x.a+'|'+x.b;return (S.myVotes||[]).find(v=>!v.free&&v.key===key)||null}
-async function refreshMine(){if(!S.me)return;try{S.myVotes=await B.votesOfUser(S.me.uid);await refreshFriends();await loadInbox();R()}catch(e){}}
+async function refreshMine(){if(!S.me)return;try{S.myVotes=await cleanMine();await refreshFriends();await loadInbox();R()}catch(e){}}
 function startEdit(v){
  if(!v.sc){S.msgP='Esta votación es antigua y no se puede editar. Bórrala y vótala otra vez.';S.v='perfil';return R()}
  const l=L.find(x=>x.i===v.l)||L[0];
@@ -876,6 +877,7 @@ async function deleteAccount(){
 }
 
 const AVISOS=[
+ {ts:Date.parse('2026-10-30T19:00:00'),text:'Cada batalla de liga se puede votar una sola vez. Si quieres cambiarla, edítala desde tu perfil; para votarla otra vez, usa Batalla libre.'},
  {ts:Date.parse('2026-10-30T18:00:00'),text:'Tus votos ahora se ven en una lista deslizable: aparecen 5 a la vez y puedes deslizar para ver el resto.'},
  {ts:Date.parse('2026-10-30T12:00:00'),text:'Nueva bandeja de entrada: aquí verás las actualizaciones de la app y lo que votan tus amigos.'},
  {ts:Date.parse('2026-10-30T09:00:00'),text:'Rangos nuevos: sube de Underground a Elite votando batallas de liga.'}
@@ -937,10 +939,13 @@ function rankBadge(t,size){
  return `<svg width="${size}" height="${size}" viewBox="0 0 48 48" aria-hidden="true">${defs}${art[t]}</svg>`}
 function rankCardH(votes){if(!votes)return '';const r=rankInfo(votes);
  return `<div class="card" onclick="openRanks()" style="display:flex;align-items:center;gap:14px;cursor:pointer">${rankBadge(r.t,64)}<div style="flex:1;min-width:0"><div class="kicker" style="color:var(--ac)">Rango</div><div style="font-size:19px;font-weight:900;margin-top:4px">${esc(r.name)}</div><div class="mu" style="margin:2px 0 8px">${r.n} batallas de liga${r.next?` · faltan ${r.next} para subir`:' · rango máximo'}</div><div class="bar"><i style="width:${r.pct}%"></i></div></div></div>`}
-function openRanks(){S.ranksOpen=true;if(!S.myVotes&&S.me){B.votesOfUser(S.me.uid).then(v=>{S.myVotes=v;R()}).catch(()=>{})}R()}
+function openRanks(){S.ranksOpen=true;if(!S.myVotes&&S.me){cleanMine().then(v=>{S.myVotes=v;R()}).catch(()=>{})}R()}
 function ranksSheet(){const r=rankInfo(S.myVotes||[]);
  const tiers=RANKS.map((nm,t)=>`<div class="rtier"><div class="rtop">${rankBadge(t,44)}<b>${nm}</b></div>${[0,1,2].map(k=>{const need=(t*3+k)*RANK_STEP,ok=r.n>=need;return `<div class="rrow${ok?' ok':''}"><span>${nm} ${k+1}</span><span>${need} ${need===1?'batalla':'batallas'}${ok?' ✓':''}</span></div>`}).join('')}</div>`).join('');
  return `<div class="ov" onclick="S.ranksOpen=false;R()"><div class="sh" onclick="event.stopPropagation()"><div class="row" style="gap:14px;margin-bottom:12px">${rankBadge(r.t,72)}<div><div class="kicker">Tu rango</div><div style="font-size:21px;font-weight:900">${esc(r.name)}</div><div class="mu">${r.n} batallas de liga votadas</div></div></div><div class="bar" style="margin-bottom:14px"><i style="width:${r.pct}%"></i></div><div style="max-height:50vh;overflow:auto">${tiers}</div><div class="mu" style="margin-top:8px;text-align:center">Subes un nivel cada ${RANK_STEP} batallas de liga.</div></div></div>`}
+const bkey=v=>(v.free?'libre':v.l)+'|'+(v.temp||'2026')+'|'+[nrm(v.a),nrm(v.b)].sort().join('|');
+function splitDups(list){const seen=new Set(),keep=[],dups=[];[...(list||[])].sort((a,b)=>(a.ts||0)-(b.ts||0)).forEach(v=>{if(v.free){keep.push(v);return}const k=bkey(v);if(seen.has(k)){dups.push(v)}else{seen.add(k);keep.push(v)}});keep.sort((a,b)=>(b.ts||0)-(a.ts||0));return {keep,dups}}
+async function cleanMine(){const all=await B.votesOfUser(S.me.uid);const r=splitDups(all);for(const d of r.dups){try{if(d.id)await B.deleteVote(d.id)}catch(e){}}return r.keep}
 const VIEW={comunidad:comunidadV,libre:libreV,home:homeV,lg:lgv,vote:voteV,res:resV,cal:calV,search:searchV,user:userV,vd:vdV,perfil:perfilV};
 async function init(){
  const q=new URLSearchParams(location.search);
